@@ -1,0 +1,89 @@
+{
+  "vision-writer": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "vision-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "vision-writing-helper": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "scope-writer": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "scope-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "scope-writing-helper": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "roadmap-writer": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "roadmap-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "roadmap-writing-helper": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "spec-writer": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "spec-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "spec-writing-helper": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "skeleton-writer": {
+    "tool": "codex",
+    "model": "gpt-5-codex"
+  },
+  "skeleton-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "test-writer": {
+    "tool": "codex",
+    "model": "gpt-5-codex"
+  },
+  "test-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "implementer": {
+    "tool": "codex",
+    "model": "gpt-5-codex"
+  },
+  "implementation-reviewer": {
+    "tool": "codex",
+    "model": "gpt-5",
+    "reasoning_effort": "high"
+  },
+  "platform-lead": {
+    "tool": "claude",
+    "model": "claude-sonnet-4-5"
+  },
+  "bug-recorder": {
+    "tool": "codex",
+    "model": "gpt-5-codex"
+  }
+}
