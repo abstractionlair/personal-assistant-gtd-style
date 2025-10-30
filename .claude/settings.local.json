@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Volumes/Share 1/Projects/mcp-servers/file-storage-backend/**)",
+      "WebSearch",
+      "WebFetch(domain:hub.continue.dev)",
+      "WebFetch(domain:github.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
