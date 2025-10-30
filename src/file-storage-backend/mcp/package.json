@@ -1,0 +1,27 @@
+{
+  "name": "@personal-assistant/file-storage-backend-mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing file storage operations compatible with Anthropic Memory Tool.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "vitest"
+  },
+  "keywords": [
+    "mcp",
+    "file-storage",
+    "personal-assistant"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "vitest": "^1.2.0"
+  }
+}
