@@ -1,10 +1,10 @@
 # Specification: Graph Memory Core
 
 **Feature ID:** phase1-feature2
-**Version:** 1.1
+**Version:** 1.2
 **Status:** Review
 **Created:** 2025-10-31
-**Updated:** 2025-10-31 (addressing review feedback)
+**Updated:** 2025-10-31 (file extension rule finalized)
 **Author:** spec-writing-helper (collaborative)
 
 ---
@@ -162,17 +162,27 @@ This may be added in a future version if needed.
 - **`encoding`** parameter ("utf-8" | "base64") determines how content is stored - this is passed to file-storage-backend
 - **`format`** parameter (string) is opaque client metadata - the graph memory system stores it but doesn't interpret it
 
-Clients use `format` to track content types (e.g., "markdown", "pdf", "meeting-notes") for their own purposes. The system uses format only to determine file extensions.
+Clients use `format` to track content types (e.g., "markdown", "pdf", "meeting-notes") for their own purposes. **The system never interprets format.**
+
+**File Extension Rule:**
+The system chooses file extensions based solely on encoding, not format:
+- `encoding: "utf-8"` → `.txt` extension
+- `encoding: "base64"` → `.bin` extension
+
+This keeps the service format-agnostic and deterministic. Examples:
+- Markdown content → `_content/nodes/{id}.txt` (format="markdown" is preserved in metadata)
+- JSON content → `_content/nodes/{id}.txt` (format="json" is preserved in metadata)
+- PDF binary → `_content/nodes/{id}.bin` (format="pdf" is preserved in metadata)
 
 **Format Mutability:**
 - Format can be changed via `update_node` - it's just metadata
-- Encoding can also be changed if content is re-provided in different encoding
+- Encoding can be changed when updating content (affects file extension)
 
 #### Connection Content Storage
 
-When connections have optional content, it is stored at:
+When connections have optional content (always text/utf-8), it is stored at:
 ```
-_content/connections/{connection_id}.md
+_content/connections/{connection_id}.txt
 ```
 
 This is an implementation detail - clients don't need to know the path, they use `get_connection` and related tools.
@@ -222,8 +232,8 @@ This is an implementation detail - clients don't need to know the path, they use
   - Note: System passes encoding to file-storage-backend for proper handling
 - `format` (string): Content format metadata
   - Examples: "markdown", "json", "pdf", "png"
-  - **Important:** Format is opaque client metadata - the graph memory system stores it but doesn't interpret it. Clients use format to track content type for their own purposes.
-  - The system uses format to determine file extension (e.g., "markdown" → .md, "pdf" → .pdf)
+  - **Important:** Format is opaque client metadata - the graph memory system stores it but never interprets it. Clients use format to track content type for their own purposes.
+  - File extension is determined by `encoding` (utf-8 → .txt, base64 → .bin), not format
 - `properties` (object, optional): Key-value properties for queries
   - Example: `{ status: "active", priority: 1 }`
   - Constraints: Values must be string, number, or boolean (no nested objects/arrays in MVP)
@@ -245,7 +255,7 @@ This is an implementation detail - clients don't need to know the path, they use
 
 **Postconditions:**
 - Node entry added to `_system/registry.json` with generated ID
-- Content file created at `_content/nodes/{id}.{extension}`
+- Content file created at `_content/nodes/{id}.txt` (if encoding="utf-8") or `_content/nodes/{id}.bin` (if encoding="base64")
 - Node is immediately queryable via `query_nodes()`
 - Subsequent `get_node(id)` returns the node metadata
 - `modified` and `created` timestamps set to current time
@@ -378,8 +388,8 @@ get_node_content({ node_id: "mem_k4j9x2_p8n3q1" })
   - Required if `content` is provided
   - Can change encoding when updating content
 - `format` (string, optional): Update format metadata
-  - Format can be changed independently of content
-  - System uses format to determine file extension if content changes
+  - Format can be changed independently of content (just metadata)
+  - File extension is determined by `encoding`, not format
 
 **Returns:**
 - void (success) or error
@@ -396,8 +406,8 @@ get_node_content({ node_id: "mem_k4j9x2_p8n3q1" })
 **Postconditions:**
 - `modified` timestamp updated to current time
 - If properties provided: Properties merged into existing (no removal)
-- If content provided: Content file replaced with new encoding
-- If format provided: Format metadata updated
+- If content provided: Content file replaced with new encoding (file extension changes if encoding changes: .txt ↔ .bin)
+- If format provided: Format metadata updated (no effect on file extension)
 - Changes persisted to registry immediately
 
 **Example Usage:**
@@ -1160,6 +1170,7 @@ get_ontology()
 - ✓ search_content with node_type filters to that type only
 - ✓ search_content with limit returns max N results
 - ✓ search_content with no matches returns empty array
+- ✓ search_content does not match binary nodes (encoding="base64")
 
 **AC17: Ontology Append-Only**
 - ✓ add_node_type adds new type without affecting existing types
@@ -1199,16 +1210,16 @@ get_ontology()
 
 **When:**
 1. Call `create_ontology({ node_types: ["Project", "Action"], connection_types: [{ name: "NextAction", from_types: ["Project"], to_types: ["Action"] }] })`
-2. Call `create_node({ type: "Project", content: "# Kitchen Renovation\n\nBudget: $50k", format: "markdown", properties: { status: "active" } })`
+2. Call `create_node({ type: "Project", content: "# Kitchen Renovation\n\nBudget: $50k", encoding: "utf-8", format: "markdown", properties: { status: "active" } })`
    - Returns: `{ node_id: "mem_k4j9x2_p8n3q1" }`
-3. Call `create_node({ type: "Action", content: "# Call contractor\n\nGet 3 quotes", format: "markdown", properties: { status: "next" } })`
+3. Call `create_node({ type: "Action", content: "# Call contractor\n\nGet 3 quotes", encoding: "utf-8", format: "markdown", properties: { status: "next" } })`
    - Returns: `{ node_id: "mem_m3n7k1_q9r4t2" }`
 4. Call `create_connection({ type: "NextAction", from_node_id: "mem_k4j9x2_p8n3q1", to_node_id: "mem_m3n7k1_q9r4t2", properties: { priority: "high" } })`
    - Returns: `{ connection_id: "conn_x7y2z9_k5m8n3" }`
 
 **Then:**
 - Registry contains 2 nodes and 1 connection
-- Content files exist at `_content/nodes/mem_k4j9x2_p8n3q1.md` and `_content/nodes/mem_m3n7k1_q9r4t2.md`
+- Content files exist at `_content/nodes/mem_k4j9x2_p8n3q1.txt` and `_content/nodes/mem_m3n7k1_q9r4t2.txt` (utf-8 → .txt)
 - `get_node("mem_k4j9x2_p8n3q1")` returns metadata with type="Project", properties={ status: "active" }
 - `get_connected_nodes({ node_id: "mem_k4j9x2_p8n3q1", connection_type: "NextAction", direction: "out" })` returns `["mem_m3n7k1_q9r4t2"]`
 - Restarting server and calling `get_node("mem_k4j9x2_p8n3q1")` still works (data persists)
@@ -1250,7 +1261,7 @@ get_ontology()
 
 **Then:**
 - Node "mem_k4j9x2_p8n3q1" removed from registry
-- Content file `_content/nodes/mem_k4j9x2_p8n3q1.md` deleted
+- Content file `_content/nodes/mem_k4j9x2_p8n3q1.txt` deleted
 - Connections "conn_x7y2z9_k5m8n3" and "conn_r8s3t7_u2v6w1" deleted (connected to deleted node)
 - Connection "conn_h3j7k1_l9m4n8" still exists (not connected to deleted node)
 - Nodes "mem_m3n7k1_q9r4t2", "mem_b5c9d2_f7g3h8", "mem_j4k8l1_n6p2r9" still exist (targets not deleted)
@@ -1379,8 +1390,8 @@ get_ontology()
   modified: "2025-10-31T15:30:00Z",
   properties: { status: "active" },
   content: {
-    path: "_content/nodes/mem_k4j9x2_p8n3q1.md",
-    format: "markdown"
+    path: "_content/nodes/mem_k4j9x2_p8n3q1.txt",  // .txt because utf-8 encoding
+    format: "markdown"  // Client metadata only
   }
 }
 ```
@@ -1760,3 +1771,12 @@ None - all clarified during spec-writing-helper conversation.
 - **Binary search**: Clarified search_content is text-only; binary content not searched
 - **Error codes**: Added comprehensive error code reference table
 - Addresses review: reviews/specs/2025-10-31T18-12-13-graph-memory-core-NEEDS-CHANGES.md (all 8 approval criteria met)
+
+**Version 1.2 (2025-10-31) - File Extension Rule Finalized**
+- **File extension rule**: Changed to encoding-based (utf-8 → .txt, base64 → .bin) instead of format-based
+- **Format interpretation**: Clarified system **never interprets format** - it's purely client metadata
+- **Updated examples**: All file paths now show .txt for text content, .bin for binary (e.g., `_content/nodes/{id}.txt`)
+- **Connection content**: Changed from .md to .txt (always utf-8 encoded)
+- **Scenarios updated**: Added `encoding` parameter to all create_node calls; updated file paths
+- **AC16 enhancement**: Added bullet asserting binary content (encoding="base64") is not searched
+- Addresses review: reviews/specs/2025-10-31T18-27-44-graph-memory-core-NEEDS-CHANGES.md (both remaining issues resolved)
