@@ -13,7 +13,9 @@
       "Bash(cat:*)",
       "Bash(npm test)",
       "Bash(npm install:*)",
-      "Read(//Volumes/Share 1/Projects/**)"
+      "Read(//Volumes/Share 1/Projects/**)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
