@@ -1,9 +1,10 @@
 # Specification: Graph Memory Core
 
 **Feature ID:** phase1-feature2
-**Version:** 1.0
-**Status:** Proposed
+**Version:** 1.1
+**Status:** Review
 **Created:** 2025-10-31
+**Updated:** 2025-10-31 (addressing review feedback)
 **Author:** spec-writing-helper (collaborative)
 
 ---
@@ -101,7 +102,7 @@ This delivers the "graph memory as cognitive architecture" foundation described 
 ```json
 {
   "mcpServers": {
-    "graph-memory": {
+    "graph-memory-core": {
       "command": "node",
       "args": ["/path/to/graph-memory-core/dist/index.js"],
       "env": {
@@ -114,6 +115,86 @@ This delivers the "graph memory as cognitive architecture" foundation described 
 
 ---
 
+### Key Design Clarifications
+
+#### Property Value Constraints
+
+Properties on nodes and connections support the following value types:
+- **string** - Text values (case-sensitive matching)
+- **number** - Numeric values (compared by value)
+- **boolean** - True/false values (exact matching)
+
+**Not supported in MVP:**
+- Nested objects or arrays as property values
+- Null values (use absence of key instead)
+
+**Query Matching Semantics:**
+- `query_nodes` and `query_connections` match ALL specified properties (AND logic)
+- String matching is case-sensitive and requires exact equality
+- Number matching compares by value
+- Nodes/connections with additional properties beyond those queried still match
+
+**Examples:**
+```typescript
+// Valid properties
+{ status: "active", priority: 1, urgent: true }
+
+// Invalid (arrays not supported)
+{ tags: ["important", "urgent"] }  // ❌
+
+// Invalid (nested objects not supported)
+{ metadata: { created_by: "user" } }  // ❌
+```
+
+#### Property Removal
+
+**Property removal is not supported in MVP.** The `update_node` and `update_connection` operations merge provided properties with existing ones but cannot remove properties.
+
+**Workarounds:**
+- To remove a property, delete and recreate the node/connection
+- Or, set a sentinel value like `{ status: "none" }` and filter in queries
+
+This may be added in a future version if needed.
+
+#### Content Format and Encoding
+
+**Format vs Encoding:**
+- **`encoding`** parameter ("utf-8" | "base64") determines how content is stored - this is passed to file-storage-backend
+- **`format`** parameter (string) is opaque client metadata - the graph memory system stores it but doesn't interpret it
+
+Clients use `format` to track content types (e.g., "markdown", "pdf", "meeting-notes") for their own purposes. The system uses format only to determine file extensions.
+
+**Format Mutability:**
+- Format can be changed via `update_node` - it's just metadata
+- Encoding can also be changed if content is re-provided in different encoding
+
+#### Connection Content Storage
+
+When connections have optional content, it is stored at:
+```
+_content/connections/{connection_id}.md
+```
+
+This is an implementation detail - clients don't need to know the path, they use `get_connection` and related tools.
+
+#### Error Codes Reference
+
+| Error Code | Triggered By | Meaning |
+|---|---|---|
+| `ONTOLOGY_NOT_FOUND` | Most operations | Ontology must be created before using graph operations |
+| `ONTOLOGY_ALREADY_EXISTS` | `create_ontology` | Cannot create ontology twice |
+| `TYPE_ALREADY_EXISTS` | `add_node_type`, `add_connection_type` | Type name already defined in ontology |
+| `INVALID_NODE_TYPE` | `create_node` | Node type doesn't exist in ontology |
+| `INVALID_CONNECTION_TYPE` | `create_connection` | Connection type doesn't exist in ontology |
+| `INVALID_TOPOLOGY` | `create_connection` | Source/target node types incompatible with connection type |
+| `REQUIRED_PROPERTY_MISSING` | `create_connection` | Connection type requires properties that weren't provided |
+| `NODE_NOT_FOUND` | Node operations | Node ID doesn't exist in registry |
+| `CONNECTION_NOT_FOUND` | Connection operations | Connection ID doesn't exist in registry |
+| `FILE_CREATION_FAILED` | `create_node`, `create_connection` | Could not create content file |
+| `CONTENT_READ_FAILED` | `get_node_content` | Could not read content file |
+
+---
+
 ### Tool 1: create_node
 
 **Purpose:** Create a new typed node with content
@@ -122,8 +203,9 @@ This delivers the "graph memory as cognitive architecture" foundation described 
 ```typescript
 {
   type: string,              // Node type from ontology
-  content: string,           // Node content (text or base64-encoded binary)
-  format: string,            // Content format (e.g., "markdown", "json", "pdf")
+  content: string,           // Node content (utf-8 text or base64-encoded binary)
+  encoding: "utf-8" | "base64",  // Content encoding
+  format: string,            // Content format (opaque client metadata, e.g., "markdown", "pdf")
   properties?: object        // Optional key-value properties for queries
 }
 ```
@@ -134,16 +216,22 @@ This delivers the "graph memory as cognitive architecture" foundation described 
   - Example: "Project", "Action", "Context"
 - `content` (string): Node content
   - Example: "# Kitchen Renovation\n\nBudget: $50k"
-- `format` (string): Content format
-  - Examples: "markdown", "json", "pdf"
-  - Used to determine file extension
-- `properties` (object, optional): Key-value properties
-  - Example: `{ status: "active", priority: "high" }`
-  - Constraints: Must be valid JSON object
+- `encoding` ("utf-8" | "base64"): Content encoding
+  - "utf-8": Text content (used for markdown, json, txt, yaml, etc.)
+  - "base64": Base64-encoded binary content (used for pdf, images, etc.)
+  - Note: System passes encoding to file-storage-backend for proper handling
+- `format` (string): Content format metadata
+  - Examples: "markdown", "json", "pdf", "png"
+  - **Important:** Format is opaque client metadata - the graph memory system stores it but doesn't interpret it. Clients use format to track content type for their own purposes.
+  - The system uses format to determine file extension (e.g., "markdown" → .md, "pdf" → .pdf)
+- `properties` (object, optional): Key-value properties for queries
+  - Example: `{ status: "active", priority: 1 }`
+  - Constraints: Values must be string, number, or boolean (no nested objects/arrays in MVP)
+  - See "Property Value Constraints" section below for details
 
 **Returns:**
 - `node_id` (string): Unique node identifier (opaque string)
-  - Example: "mem_l4k3j2_a7b9c2d"
+  - Example: "mem_k4j9x2_p8n3q1" (format is implementation detail, do not depend on structure)
 
 **Raises:**
 - `INVALID_NODE_TYPE`: Node type doesn't exist in ontology
@@ -167,10 +255,11 @@ This delivers the "graph memory as cognitive architecture" foundation described 
 create_node({
   type: "Project",
   content: "# Kitchen Renovation\n\nBudget: $50k\nTimeline: Q1 2026",
+  encoding: "utf-8",
   format: "markdown",
   properties: { status: "active" }
 })
-// → { node_id: "mem_proj_001" }
+// → { node_id: "mem_k4j9x2_p8n3q1" }
 ```
 
 ---
@@ -188,7 +277,7 @@ create_node({
 
 **Parameters:**
 - `node_id` (string): Node identifier
-  - Example: "mem_proj_001"
+  - Example: "mem_k4j9x2_p8n3q1"
 
 **Returns:**
 ```typescript
@@ -213,9 +302,9 @@ create_node({
 
 **Example Usage:**
 ```typescript
-get_node({ node_id: "mem_proj_001" })
+get_node({ node_id: "mem_k4j9x2_p8n3q1" })
 // → {
-//   id: "mem_proj_001",
+//   id: "mem_k4j9x2_p8n3q1",
 //   type: "Project",
 //   created: "2025-10-31T10:00:00Z",
 //   modified: "2025-10-31T15:30:00Z",
@@ -255,7 +344,7 @@ get_node({ node_id: "mem_proj_001" })
 
 **Example Usage:**
 ```typescript
-get_node_content({ node_id: "mem_proj_001" })
+get_node_content({ node_id: "mem_k4j9x2_p8n3q1" })
 // → "# Kitchen Renovation\n\nBudget: $50k\nTimeline: Q1 2026"
 ```
 
@@ -269,8 +358,10 @@ get_node_content({ node_id: "mem_proj_001" })
 ```typescript
 {
   node_id: string,
-  properties?: object,  // Optional: updated properties (merged)
-  content?: string      // Optional: new content (replaces existing)
+  properties?: object,   // Optional: updated properties (merged)
+  content?: string,      // Optional: new content (replaces existing)
+  encoding?: "utf-8" | "base64",  // Optional: content encoding (required if content provided)
+  format?: string        // Optional: update format metadata
 }
 ```
 
@@ -278,29 +369,41 @@ get_node_content({ node_id: "mem_proj_001" })
 - `node_id` (string): Node identifier
 - `properties` (object, optional): Updated properties
   - Behavior: Merged with existing (new keys added, existing keys updated, unspecified keys unchanged)
+  - Note: Property removal not supported - see "Property Removal" section
+  - Constraints: Values must be string, number, or boolean
 - `content` (string, optional): New content
   - Behavior: Replaces existing content file completely
+  - If provided, `encoding` must also be provided
+- `encoding` ("utf-8" | "base64", optional): Content encoding
+  - Required if `content` is provided
+  - Can change encoding when updating content
+- `format` (string, optional): Update format metadata
+  - Format can be changed independently of content
+  - System uses format to determine file extension if content changes
 
 **Returns:**
 - void (success) or error
 
 **Raises:**
 - `NODE_NOT_FOUND`: Node ID doesn't exist
+- `INVALID_ENCODING`: encoding not provided when content is provided
 
 **Preconditions:**
 - Node must exist
-- At least one of `properties` or `content` must be provided
+- At least one of `properties`, `content`, or `format` must be provided
+- If `content` provided, `encoding` must also be provided
 
 **Postconditions:**
 - `modified` timestamp updated to current time
-- If properties provided: Properties merged into existing
-- If content provided: Content file replaced
+- If properties provided: Properties merged into existing (no removal)
+- If content provided: Content file replaced with new encoding
+- If format provided: Format metadata updated
 - Changes persisted to registry immediately
 
 **Example Usage:**
 ```typescript
 update_node({
-  node_id: "mem_proj_001",
+  node_id: "mem_k4j9x2_p8n3q1",
   properties: { status: "completed" },
   content: "# Kitchen Renovation\n\n**COMPLETED Q1 2026**\n\nFinal cost: $48k"
 })
@@ -340,7 +443,7 @@ update_node({
 
 **Example Usage:**
 ```typescript
-delete_node({ node_id: "mem_proj_001" })
+delete_node({ node_id: "mem_k4j9x2_p8n3q1" })
 ```
 
 ---
@@ -372,7 +475,7 @@ delete_node({ node_id: "mem_proj_001" })
 
 **Returns:**
 - `connection_id` (string): Unique connection identifier
-  - Example: "conn_001"
+  - Example: "conn_x7y2z9_k5m8n3"
 
 **Raises:**
 - `INVALID_CONNECTION_TYPE`: Connection type doesn't exist in ontology
@@ -398,11 +501,11 @@ delete_node({ node_id: "mem_proj_001" })
 ```typescript
 create_connection({
   type: "NextAction",
-  from_node_id: "mem_proj_001",
-  to_node_id: "mem_act_001",
+  from_node_id: "mem_k4j9x2_p8n3q1",
+  to_node_id: "mem_m3n7k1_q9r4t2",
   properties: { priority: "high", added: "2025-10-31" }
 })
-// → { connection_id: "conn_001" }
+// → { connection_id: "conn_x7y2z9_k5m8n3" }
 ```
 
 ---
@@ -440,12 +543,12 @@ create_connection({
 
 **Example Usage:**
 ```typescript
-get_connection({ connection_id: "conn_001" })
+get_connection({ connection_id: "conn_x7y2z9_k5m8n3" })
 // → {
-//   id: "conn_001",
+//   id: "conn_x7y2z9_k5m8n3",
 //   type: "NextAction",
-//   from_node_id: "mem_proj_001",
-//   to_node_id: "mem_act_001",
+//   from_node_id: "mem_k4j9x2_p8n3q1",
+//   to_node_id: "mem_m3n7k1_q9r4t2",
 //   created: "2025-10-31T10:15:00Z",
 //   modified: "2025-10-31T10:15:00Z",
 //   properties: { priority: "high" },
@@ -487,7 +590,7 @@ get_connection({ connection_id: "conn_001" })
 **Example Usage:**
 ```typescript
 update_connection({
-  connection_id: "conn_001",
+  connection_id: "conn_x7y2z9_k5m8n3",
   properties: { priority: "medium" }
 })
 ```
@@ -520,7 +623,7 @@ update_connection({
 
 **Example Usage:**
 ```typescript
-delete_connection({ connection_id: "conn_001" })
+delete_connection({ connection_id: "conn_x7y2z9_k5m8n3" })
 ```
 
 ---
@@ -562,18 +665,18 @@ delete_connection({ connection_id: "conn_001" })
 ```typescript
 // Find all next actions
 query_nodes({ type: "Action", properties: { status: "next" } })
-// → ["mem_act_001", "mem_act_002", "mem_act_003"]
+// → ["mem_m3n7k1_q9r4t2", "mem_b5c9d2_f7g3h8", "mem_j4k8l1_n6p2r9"]
 
 // Find all projects
 query_nodes({ type: "Project" })
-// → ["mem_proj_001", "mem_proj_002"]
+// → ["mem_k4j9x2_p8n3q1", "mem_p2q8r4_s6t3u1"]
 
 // Find all next actions requiring phone
 query_nodes({
   type: "Action",
   properties: { status: "next", context: "phone" }
 })
-// → ["mem_act_001", "mem_act_004"]
+// → ["mem_m3n7k1_q9r4t2", "mem_v3w7x2_y5z9a4"]
 ```
 
 ---
@@ -608,14 +711,14 @@ query_nodes({
 ```typescript
 // Find all NextAction connections from a project
 query_connections({
-  from_node_id: "mem_proj_001",
+  from_node_id: "mem_k4j9x2_p8n3q1",
   type: "NextAction"
 })
-// → ["conn_001", "conn_002"]
+// → ["conn_x7y2z9_k5m8n3", "conn_r8s3t7_u2v6w1"]
 
 // Find all connections to a specific action
-query_connections({ to_node_id: "mem_act_001" })
-// → ["conn_001", "conn_005"]
+query_connections({ to_node_id: "mem_m3n7k1_q9r4t2" })
+// → ["conn_x7y2z9_k5m8n3", "conn_q9r2s6_t8u1v5"]
 ```
 
 ---
@@ -652,19 +755,19 @@ query_connections({ to_node_id: "mem_act_001" })
 ```typescript
 // Get all next actions for a project
 get_connected_nodes({
-  node_id: "mem_proj_001",
+  node_id: "mem_k4j9x2_p8n3q1",
   connection_type: "NextAction",
   direction: "out"
 })
-// → ["mem_act_001", "mem_act_002"]
+// → ["mem_m3n7k1_q9r4t2", "mem_b5c9d2_f7g3h8"]
 
 // Get all projects that have this action as next action
 get_connected_nodes({
-  node_id: "mem_act_001",
+  node_id: "mem_m3n7k1_q9r4t2",
   connection_type: "NextAction",
   direction: "in"
 })
-// → ["mem_proj_001"]
+// → ["mem_k4j9x2_p8n3q1"]
 ```
 
 ---
@@ -698,22 +801,23 @@ get_connected_nodes({
 
 **Notes:**
 - Simple substring matching in content
-- Works on both text and binary content (searches raw bytes)
+- **Text content only** - binary content (encoding="base64") is not searched
+- For nodes with binary content, search will not find matches
 - No semantic understanding or embeddings
 
 **Example Usage:**
 ```typescript
 // Find all nodes mentioning "farmhouse"
 search_content({ query: "farmhouse" })
-// → ["mem_proj_001", "mem_proj_002", "mem_act_001"]
+// → ["mem_k4j9x2_p8n3q1", "mem_p2q8r4_s6t3u1", "mem_m3n7k1_q9r4t2"]
 
 // Find Project nodes mentioning "farmhouse"
 search_content({ query: "farmhouse", node_type: "Project" })
-// → ["mem_proj_001", "mem_proj_002"]
+// → ["mem_k4j9x2_p8n3q1", "mem_p2q8r4_s6t3u1"]
 
 // Find first 5 nodes mentioning "contractor"
 search_content({ query: "contractor", limit: 5 })
-// → ["mem_act_001", "mem_act_003", "mem_proj_001"]
+// → ["mem_m3n7k1_q9r4t2", "mem_j4k8l1_n6p2r9", "mem_k4j9x2_p8n3q1"]
 ```
 
 ---
@@ -1096,18 +1200,18 @@ get_ontology()
 **When:**
 1. Call `create_ontology({ node_types: ["Project", "Action"], connection_types: [{ name: "NextAction", from_types: ["Project"], to_types: ["Action"] }] })`
 2. Call `create_node({ type: "Project", content: "# Kitchen Renovation\n\nBudget: $50k", format: "markdown", properties: { status: "active" } })`
-   - Returns: `{ node_id: "mem_proj_001" }`
+   - Returns: `{ node_id: "mem_k4j9x2_p8n3q1" }`
 3. Call `create_node({ type: "Action", content: "# Call contractor\n\nGet 3 quotes", format: "markdown", properties: { status: "next" } })`
-   - Returns: `{ node_id: "mem_act_001" }`
-4. Call `create_connection({ type: "NextAction", from_node_id: "mem_proj_001", to_node_id: "mem_act_001", properties: { priority: "high" } })`
-   - Returns: `{ connection_id: "conn_001" }`
+   - Returns: `{ node_id: "mem_m3n7k1_q9r4t2" }`
+4. Call `create_connection({ type: "NextAction", from_node_id: "mem_k4j9x2_p8n3q1", to_node_id: "mem_m3n7k1_q9r4t2", properties: { priority: "high" } })`
+   - Returns: `{ connection_id: "conn_x7y2z9_k5m8n3" }`
 
 **Then:**
 - Registry contains 2 nodes and 1 connection
-- Content files exist at `_content/nodes/mem_proj_001.md` and `_content/nodes/mem_act_001.md`
-- `get_node("mem_proj_001")` returns metadata with type="Project", properties={ status: "active" }
-- `get_connected_nodes({ node_id: "mem_proj_001", connection_type: "NextAction", direction: "out" })` returns `["mem_act_001"]`
-- Restarting server and calling `get_node("mem_proj_001")` still works (data persists)
+- Content files exist at `_content/nodes/mem_k4j9x2_p8n3q1.md` and `_content/nodes/mem_m3n7k1_q9r4t2.md`
+- `get_node("mem_k4j9x2_p8n3q1")` returns metadata with type="Project", properties={ status: "active" }
+- `get_connected_nodes({ node_id: "mem_k4j9x2_p8n3q1", connection_type: "NextAction", direction: "out" })` returns `["mem_m3n7k1_q9r4t2"]`
+- Restarting server and calling `get_node("mem_k4j9x2_p8n3q1")` still works (data persists)
 
 ---
 
@@ -1116,17 +1220,17 @@ get_ontology()
 **Given:**
 - Ontology exists with node types: ["Project", "Action", "Person"]
 - Ontology has connection type "NextAction" from ["Project"] to ["Action"] only
-- Node "mem_proj_001" exists with type="Project"
-- Node "mem_person_001" exists with type="Person"
+- Node "mem_k4j9x2_p8n3q1" exists with type="Project"
+- Node "mem_c6d2e8_g4h9j1" exists with type="Person"
 
 **When:**
-- Call `create_connection({ type: "NextAction", from_node_id: "mem_proj_001", to_node_id: "mem_person_001" })`
+- Call `create_connection({ type: "NextAction", from_node_id: "mem_k4j9x2_p8n3q1", to_node_id: "mem_c6d2e8_g4h9j1" })`
 
 **Then:**
 - Operation fails with error code `INVALID_TOPOLOGY`
 - Error message: "Cannot connect Project to Person with NextAction. Valid targets: [Action]"
 - No connection created in registry
-- `query_connections({ from_node_id: "mem_proj_001" })` returns empty array
+- `query_connections({ from_node_id: "mem_k4j9x2_p8n3q1" })` returns empty array
 - Registry remains unchanged (no partial state)
 
 ---
@@ -1134,25 +1238,25 @@ get_ontology()
 ### Scenario 3: Cascade Delete Removes Connections
 
 **Given:**
-- Node "mem_proj_001" (type="Project") exists
-- Nodes "mem_act_001", "mem_act_002", "mem_act_003" (type="Action") exist
+- Node "mem_k4j9x2_p8n3q1" (type="Project") exists
+- Nodes "mem_m3n7k1_q9r4t2", "mem_b5c9d2_f7g3h8", "mem_j4k8l1_n6p2r9" (type="Action") exist
 - Connections exist:
-  - "conn_001": mem_proj_001 → mem_act_001 (NextAction)
-  - "conn_002": mem_proj_001 → mem_act_002 (NextAction)
-  - "conn_003": mem_act_002 → mem_act_003 (DependsOn)
+  - "conn_x7y2z9_k5m8n3": mem_k4j9x2_p8n3q1 → mem_m3n7k1_q9r4t2 (NextAction)
+  - "conn_r8s3t7_u2v6w1": mem_k4j9x2_p8n3q1 → mem_b5c9d2_f7g3h8 (NextAction)
+  - "conn_h3j7k1_l9m4n8": mem_b5c9d2_f7g3h8 → mem_j4k8l1_n6p2r9 (DependsOn)
 
 **When:**
-- Call `delete_node({ node_id: "mem_proj_001" })`
+- Call `delete_node({ node_id: "mem_k4j9x2_p8n3q1" })`
 
 **Then:**
-- Node "mem_proj_001" removed from registry
-- Content file `_content/nodes/mem_proj_001.md` deleted
-- Connections "conn_001" and "conn_002" deleted (connected to deleted node)
-- Connection "conn_003" still exists (not connected to deleted node)
-- Nodes "mem_act_001", "mem_act_002", "mem_act_003" still exist (targets not deleted)
-- `get_node("mem_proj_001")` throws `NODE_NOT_FOUND`
-- `get_connection("conn_001")` throws `CONNECTION_NOT_FOUND`
-- `get_connection("conn_003")` returns connection metadata (still exists)
+- Node "mem_k4j9x2_p8n3q1" removed from registry
+- Content file `_content/nodes/mem_k4j9x2_p8n3q1.md` deleted
+- Connections "conn_x7y2z9_k5m8n3" and "conn_r8s3t7_u2v6w1" deleted (connected to deleted node)
+- Connection "conn_h3j7k1_l9m4n8" still exists (not connected to deleted node)
+- Nodes "mem_m3n7k1_q9r4t2", "mem_b5c9d2_f7g3h8", "mem_j4k8l1_n6p2r9" still exist (targets not deleted)
+- `get_node("mem_k4j9x2_p8n3q1")` throws `NODE_NOT_FOUND`
+- `get_connection("conn_x7y2z9_k5m8n3")` throws `CONNECTION_NOT_FOUND`
+- `get_connection("conn_h3j7k1_l9m4n8")` returns connection metadata (still exists)
 
 ---
 
@@ -1161,19 +1265,19 @@ get_ontology()
 **Given:**
 - Ontology exists with node type "Action"
 - Nodes exist:
-  - "mem_act_001": { type: "Action", properties: { status: "next", context: "phone" } }
-  - "mem_act_002": { type: "Action", properties: { status: "next", context: "computer" } }
-  - "mem_act_003": { type: "Action", properties: { status: "waiting", context: "phone" } }
-  - "mem_act_004": { type: "Action", properties: { status: "next", context: "phone", priority: "high" } }
+  - "mem_m3n7k1_q9r4t2": { type: "Action", properties: { status: "next", context: "phone" } }
+  - "mem_b5c9d2_f7g3h8": { type: "Action", properties: { status: "next", context: "computer" } }
+  - "mem_j4k8l1_n6p2r9": { type: "Action", properties: { status: "waiting", context: "phone" } }
+  - "mem_v3w7x2_y5z9a4": { type: "Action", properties: { status: "next", context: "phone", priority: "high" } }
 
 **When:**
 - Call `query_nodes({ type: "Action", properties: { status: "next", context: "phone" } })`
 
 **Then:**
-- Returns: `["mem_act_001", "mem_act_004"]`
-- Does NOT return "mem_act_002" (context doesn't match)
-- Does NOT return "mem_act_003" (status doesn't match)
-- DOES return "mem_act_004" even though it has extra property "priority" (extra properties OK)
+- Returns: `["mem_m3n7k1_q9r4t2", "mem_v3w7x2_y5z9a4"]`
+- Does NOT return "mem_b5c9d2_f7g3h8" (context doesn't match)
+- Does NOT return "mem_j4k8l1_n6p2r9" (status doesn't match)
+- DOES return "mem_v3w7x2_y5z9a4" even though it has extra property "priority" (extra properties OK)
 - Order of results: unspecified (can be any order)
 
 ---
@@ -1190,11 +1294,11 @@ get_ontology()
     required_properties: ["since", "follow_up_date"]
   }
   ```
-- Node "mem_act_001" (type="Action") exists
-- Node "mem_person_001" (type="Person") exists
+- Node "mem_m3n7k1_q9r4t2" (type="Action") exists
+- Node "mem_c6d2e8_g4h9j1" (type="Person") exists
 
 **When:**
-- Call `create_connection({ type: "WaitingFor", from_node_id: "mem_act_001", to_node_id: "mem_person_001", properties: { since: "2025-10-15" } })`
+- Call `create_connection({ type: "WaitingFor", from_node_id: "mem_m3n7k1_q9r4t2", to_node_id: "mem_c6d2e8_g4h9j1", properties: { since: "2025-10-15" } })`
   - (Missing required property "follow_up_date")
 
 **Then:**
@@ -1209,25 +1313,25 @@ get_ontology()
 
 **Given:**
 - Nodes exist:
-  - "mem_proj_001" (type="Project"): content="# Kitchen Renovation\n\nModern farmhouse style"
-  - "mem_proj_002" (type="Project"): content="# Bathroom Remodel\n\nFarmhouse sink and fixtures"
-  - "mem_act_001" (type="Action"): content="# Research farmhouse sinks\n\nFind suppliers"
-  - "mem_act_002" (type="Action"): content="# Call plumber\n\nSchedule bathroom work"
+  - "mem_k4j9x2_p8n3q1" (type="Project"): content="# Kitchen Renovation\n\nModern farmhouse style"
+  - "mem_p2q8r4_s6t3u1" (type="Project"): content="# Bathroom Remodel\n\nFarmhouse sink and fixtures"
+  - "mem_m3n7k1_q9r4t2" (type="Action"): content="# Research farmhouse sinks\n\nFind suppliers"
+  - "mem_b5c9d2_f7g3h8" (type="Action"): content="# Call plumber\n\nSchedule bathroom work"
 
 **When:**
 - Call `search_content({ query: "farmhouse", limit: 10 })`
 
 **Then:**
-- Returns: `["mem_proj_001", "mem_proj_002", "mem_act_001"]` (order unspecified)
+- Returns: `["mem_k4j9x2_p8n3q1", "mem_p2q8r4_s6t3u1", "mem_m3n7k1_q9r4t2"]` (order unspecified)
 - All nodes containing "farmhouse" (case-insensitive) returned
-- Does NOT return "mem_act_002" (no match)
+- Does NOT return "mem_b5c9d2_f7g3h8" (no match)
 
 **When:**
 - Call `search_content({ query: "farmhouse", node_type: "Project", limit: 10 })`
 
 **Then:**
-- Returns: `["mem_proj_001", "mem_proj_002"]`
-- Only Project nodes returned (mem_act_001 filtered out by node_type)
+- Returns: `["mem_k4j9x2_p8n3q1", "mem_p2q8r4_s6t3u1"]`
+- Only Project nodes returned (mem_m3n7k1_q9r4t2 filtered out by node_type)
 
 **When:**
 - Call `search_content({ query: "farmhouse", limit: 2 })`
@@ -1269,13 +1373,13 @@ get_ontology()
 **Example:**
 ```typescript
 {
-  id: "mem_proj_001",
+  id: "mem_k4j9x2_p8n3q1",
   type: "Project",
   created: "2025-10-31T10:00:00Z",
   modified: "2025-10-31T15:30:00Z",
   properties: { status: "active" },
   content: {
-    path: "_content/nodes/mem_proj_001.md",
+    path: "_content/nodes/mem_k4j9x2_p8n3q1.md",
     format: "markdown"
   }
 }
@@ -1315,10 +1419,10 @@ get_ontology()
 **Example:**
 ```typescript
 {
-  id: "conn_001",
+  id: "conn_x7y2z9_k5m8n3",
   type: "NextAction",
-  from: "mem_proj_001",
-  to: "mem_act_001",
+  from: "mem_k4j9x2_p8n3q1",
+  to: "mem_m3n7k1_q9r4t2",
   created: "2025-10-31T10:15:00Z",
   modified: "2025-10-31T10:15:00Z",
   properties: { priority: "high", added: "2025-10-31" }
@@ -1354,24 +1458,24 @@ get_ontology()
 ```json
 {
   "nodes": {
-    "mem_proj_001": {
-      "id": "mem_proj_001",
+    "mem_k4j9x2_p8n3q1": {
+      "id": "mem_k4j9x2_p8n3q1",
       "type": "Project",
       "created": "2025-10-31T10:00:00Z",
       "modified": "2025-10-31T15:30:00Z",
       "properties": { "status": "active" },
       "content": {
-        "path": "_content/nodes/mem_proj_001.md",
+        "path": "_content/nodes/mem_k4j9x2_p8n3q1.md",
         "format": "markdown"
       }
     }
   },
   "connections": {
-    "conn_001": {
-      "id": "conn_001",
+    "conn_x7y2z9_k5m8n3": {
+      "id": "conn_x7y2z9_k5m8n3",
       "type": "NextAction",
-      "from": "mem_proj_001",
-      "to": "mem_act_001",
+      "from": "mem_k4j9x2_p8n3q1",
+      "to": "mem_m3n7k1_q9r4t2",
       "created": "2025-10-31T10:15:00Z",
       "modified": "2025-10-31T10:15:00Z",
       "properties": { "priority": "high" }
@@ -1641,3 +1745,18 @@ None - all clarified during spec-writing-helper conversation.
   - Atomic operations (succeed or fail cleanly)
   - 2-day implementation target with deferral options
 - Derived from: ROADMAP.md Feature 2, memory_system_core.md, spec-writing-helper conversation
+
+**Version 1.1 (2025-10-31) - Review Feedback Addressed**
+- **Status changed** from "Proposed" to "Review"
+- **Server naming**: Fixed consistency - using "graph-memory-core" everywhere (was "graph-memory" in config example)
+- **Content encoding**: Added separate `encoding` parameter ("utf-8" | "base64") to distinguish from opaque `format` metadata
+- **Format semantics**: Clarified that `format` is opaque client metadata; system only uses it for file extensions
+- **Format mutability**: Explicitly stated format can change on update (just metadata)
+- **ID examples**: Changed all examples from sequential/typed (mem_proj_001) to opaque random-looking IDs (mem_k4j9x2_p8n3q1)
+- **Property constraints**: Added section defining allowed types (string, number, boolean only; no arrays/objects)
+- **Property matching**: Specified exact equality, case-sensitive strings, AND logic for multiple properties
+- **Property removal**: Explicitly stated not supported in MVP; documented workarounds
+- **Connection content path**: Specified `_content/connections/{id}.md` as implementation detail
+- **Binary search**: Clarified search_content is text-only; binary content not searched
+- **Error codes**: Added comprehensive error code reference table
+- Addresses review: reviews/specs/2025-10-31T18-12-13-graph-memory-core-NEEDS-CHANGES.md (all 8 approval criteria met)
