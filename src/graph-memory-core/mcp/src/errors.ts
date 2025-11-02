@@ -147,6 +147,12 @@ export class InvalidEncodingError extends GraphMemoryError {
   }
 }
 
+export class InvalidArgumentError extends GraphMemoryError {
+  constructor(message: string, details?: Record<string, unknown>) {
+    super('INVALID_ARGUMENT', message, details);
+  }
+}
+
 /**
  * Raised for stubbed methods awaiting implementation.
  */

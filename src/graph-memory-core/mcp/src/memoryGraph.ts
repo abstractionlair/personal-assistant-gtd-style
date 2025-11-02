@@ -16,6 +16,8 @@ import {
   type CreateNodeRequest,
   type CreateNodeResult,
   type CreateOntologyRequest,
+  type EnsureSingletonNodeRequest,
+  type EnsureSingletonNodeResult,
   type DeleteConnectionRequest,
   type DeleteNodeRequest,
   type GetConnectionRequest,
@@ -53,6 +55,7 @@ import {
   InvalidNodeTypeError,
   InvalidTopologyError,
   NodeNotFoundError,
+  InvalidArgumentError,
   OntologyAlreadyExistsError,
   OntologyNotFoundError,
   RequiredPropertyMissingError
@@ -295,6 +298,9 @@ export class MemoryGraph {
    */
   async deleteNode(request: DeleteNodeRequest): Promise<void> {
     const node = this.requireNode(request.node_id);
+    if (node.type === 'UNSPECIFIED') {
+      throw new InvalidArgumentError('Cannot delete singleton node UNSPECIFIED');
+    }
     const connections = this.registry.findConnectionsForNode(node.id, { direction: 'both' });
 
     try {
@@ -596,6 +602,59 @@ export class MemoryGraph {
   }
 
   /**
+   * Retrieve or create the canonical singleton node for a given type.
+   *
+   * @param request - Tool 19 payload (`ensure_singleton_node`).
+   * @returns Result containing the selected node identifier and creation flag.
+   * @throws OntologyNotFoundError When the ontology has not been created.
+   * @throws InvalidNodeTypeError When the requested node type is not defined.
+   * @throws InvalidArgumentError When creation is required but mandatory fields are missing.
+   */
+  async ensureSingletonNode(request: EnsureSingletonNodeRequest): Promise<EnsureSingletonNodeResult> {
+    const ontology = this.ensureOntology();
+    ontology.assertNodeType(request.type);
+
+    const existingIds = this.registry.queryNodes({ type: request.type });
+    if (existingIds.length > 0) {
+      const strategy = request.on_multiple ?? 'oldest';
+      const candidates = existingIds.map(id => this.registry.getNode(id));
+      const selected = this.selectSingletonCandidate(candidates, strategy);
+      return { node_id: selected.id, created: false };
+    }
+
+    const missingFields: string[] = [];
+    if (request.content === undefined) {
+      missingFields.push('content');
+    }
+    if (!request.encoding) {
+      missingFields.push('encoding');
+    }
+    if (!request.format) {
+      missingFields.push('format');
+    }
+
+    if (missingFields.length > 0) {
+      throw new InvalidArgumentError(
+        `Cannot create singleton node: missing required field${missingFields.length > 1 ? 's' : ''} ${missingFields.join(', ')}`,
+        {
+          type: request.type,
+          missing_fields: missingFields
+        }
+      );
+    }
+
+    const creation = await this.createNode({
+      type: request.type,
+      content: request.content!,
+      encoding: request.encoding!,
+      format: request.format!,
+      properties: request.properties
+    });
+
+    return { node_id: creation.node_id, created: true };
+  }
+
+  /**
    * Validate whether a connection type is permitted between two node types.
    *
    * @param request - Tool 14 payload (`validate_connection`).
@@ -695,6 +754,28 @@ export class MemoryGraph {
 
   private buildConnectionContentPath(connectionId: string): string {
     return `${CONNECTION_CONTENT_DIRECTORY}/${connectionId}.txt`;
+  }
+
+  private selectSingletonCandidate(
+    candidates: NodeRecord[],
+    strategy: 'oldest' | 'newest'
+  ): NodeRecord {
+    const comparator = (a: NodeRecord, b: NodeRecord): number => {
+      if (a.created === b.created) {
+        return a.id.localeCompare(b.id);
+      }
+      const createdComparison = a.created.localeCompare(b.created);
+      return strategy === 'oldest' ? createdComparison : -createdComparison;
+    };
+
+    const [first, ...rest] = candidates;
+    let best = first;
+    for (const candidate of rest) {
+      if (comparator(candidate, best) < 0) {
+        best = candidate;
+      }
+    }
+    return best;
   }
 
   private async deleteContentQuietly(path?: string): Promise<void> {

@@ -88,10 +88,10 @@ This phase derisks the core technical integration before investing in coaching s
    - **Effort:** Small (2 days: 1 day implementation, 1 day tests/debug)
 
 3. **GTD Ontology**
-   - **Description:** Define and implement GTD-specific structures on top of generic graph core: node types (Project, Action), connection types (NextAction, Blocks, WaitingOn), properties (status, timestamps), and support for standalone actions without projects.
+   - **Description:** Define and implement GTD-specific structures on top of generic graph core: node types (Task, State, Context), connection type (DependsOn), with derived views for Projects (Tasks with outgoing dependencies), Next Actions (actionable Tasks), and Waiting For (Tasks with external responsibility). State nodes model world conditions with ANY/ALL/MANUAL/IMMUTABLE logic; Context nodes track location/tool availability (isAvailable property); special UNSPECIFIED singleton marks tasks needing decomposition. Properties include isComplete, isTrue, logic, isAvailable, responsibleParty, timestamps. Person nodes deferred to Phase 2.
    - **Why now:** Must define GTD structures before conversational layer can create/query them.
-   - **Delivers:** Complete GTD data model ready for conversational interaction.
-   - **Derisks:** GTD model completeness; validates ontology design supports all MVP use cases.
+   - **Delivers:** Complete GTD data model ready for conversational interaction with query-based derived views.
+   - **Derisks:** GTD model completeness; validates ontology design supports all MVP use cases including state-based dependencies and flexible querying.
    - **Depends on:** Graph Memory Core.
    - **Effort:** Small (2 days: 1 day implementation, 1 day tests/debug)
 

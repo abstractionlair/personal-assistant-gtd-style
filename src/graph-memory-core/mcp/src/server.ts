@@ -17,6 +17,8 @@ import type {
   CreateNodeRequest,
   CreateNodeResult,
   CreateOntologyRequest,
+  EnsureSingletonNodeRequest,
+  EnsureSingletonNodeResult,
   DeleteConnectionRequest,
   DeleteNodeRequest,
   GetConnectionRequest,
@@ -131,6 +133,15 @@ const addConnectionTypeInputShape = {
   required_properties: z.array(z.string()).optional()
 };
 
+const ensureSingletonNodeInputShape = {
+  type: z.string(),
+  content: z.string().optional(),
+  encoding: contentEncodingSchema.optional(),
+  format: z.string().optional(),
+  properties: propertyMapSchema.optional(),
+  on_multiple: z.enum(['oldest', 'newest']).optional()
+};
+
 const emptyObjectShape: Record<string, never> = {};
 
 
@@ -154,7 +165,7 @@ export interface ToolRegistrar {
 }
 
 /**
- * MCP server wrapper exposing the 18 graph memory operations.
+ * MCP server wrapper exposing the 19 graph memory operations.
  */
 export class GraphMemoryMcpServer {
   constructor(private readonly graph: MemoryGraph) {}
@@ -181,7 +192,8 @@ export class GraphMemoryMcpServer {
       this.createCreateOntologyTool(),
       this.createAddNodeTypeTool(),
       this.createAddConnectionTypeTool(),
-      this.createGetOntologyTool()
+      this.createGetOntologyTool(),
+      this.createEnsureSingletonNodeTool()
     ];
 
     for (const definition of definitions) {
@@ -452,6 +464,21 @@ export class GraphMemoryMcpServer {
       handler: async (_input: Record<string, never>) => {
         try {
           return await this.graph.getOntology();
+        } catch (error) {
+          throw this.mapError(error);
+        }
+      }
+    };
+  }
+
+  private createEnsureSingletonNodeTool(): ToolDefinition<EnsureSingletonNodeRequest, EnsureSingletonNodeResult> {
+    return {
+      name: 'ensure_singleton_node',
+      description: 'Get or create the canonical singleton node for a type.',
+      inputSchema: ensureSingletonNodeInputShape,
+      handler: async (input: EnsureSingletonNodeRequest) => {
+        try {
+          return await this.graph.ensureSingletonNode(input);
         } catch (error) {
           throw this.mapError(error);
         }

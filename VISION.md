@@ -137,7 +137,10 @@ Transform chaotic multi-project juggling into focused serial execution by provid
 - Support morning planning, evening catchup, weekly review interaction patterns
 
 **Technical Requirements:**
-- Graph-based memory system for GTD relationships (nodes: Project, Action, Context, Person; connections: NextAction, DependsOn, WaitingFor, etc.)
+- Graph-based memory system for GTD relationships (nodes: Task, State, Context; connection: DependsOn; Context.isAvailable for location/tool tracking)
+- Derived views from queries (Projects = Tasks with outgoing dependencies; Next Actions = actionable Tasks; Waiting For = Tasks with external responsibility)
+- State nodes model world conditions with ANY/ALL logic; Task nodes model actions
+- Special UNSPECIFIED singleton for marking tasks needing decomposition
 - Integration with Anthropic Memory Tool for preferences/values storage
 - Properties vs. content separation (minimal properties for fast queries, rich content in files)
 - MCP server architecture for memory access

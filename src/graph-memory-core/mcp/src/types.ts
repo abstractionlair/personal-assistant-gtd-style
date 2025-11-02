@@ -349,6 +349,26 @@ export interface GetOntologyResult {
 }
 
 /**
+ * Request payload for Tool 19: ensure_singleton_node.
+ */
+export interface EnsureSingletonNodeRequest {
+  type: string;
+  content?: string;
+  encoding?: ContentEncoding;
+  format?: string;
+  properties?: PropertyMap;
+  on_multiple?: 'oldest' | 'newest';
+}
+
+/**
+ * Response payload for Tool 19.
+ */
+export interface EnsureSingletonNodeResult {
+  node_id: string;
+  created: boolean;
+}
+
+/**
  * Enumeration of specification-defined error codes returned by MCP tools.
  */
 export type GraphMemoryErrorCode =
@@ -363,7 +383,8 @@ export type GraphMemoryErrorCode =
   | 'CONNECTION_NOT_FOUND'
   | 'FILE_CREATION_FAILED'
   | 'CONTENT_READ_FAILED'
-  | 'INVALID_ENCODING';
+  | 'INVALID_ENCODING'
+  | 'INVALID_ARGUMENT';
 
 /**
  * MCP error payload returned by skeleton handlers.

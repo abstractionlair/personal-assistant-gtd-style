@@ -28,7 +28,7 @@ This project delivers an intelligent GTD coaching assistant that combines conver
 
 - **Conversational GTD Capture:** Natural language interaction to create projects, actions, waiting-on items, and mark items as someday-maybe or completed. Supports standalone actions (no project required) that can be promoted to projects if they grow.
 
-- **General Graph Memory System:** Generic graph-based memory layer (not GTD-specific) that supports arbitrary ontologies via node types and connection types. For MVP, loaded with GTD ontology (Projects, Actions, connections like NextAction, Blocks, WaitingOn). Enables relationship queries like "what's blocked?" and "what's the next action for this project?" Built as reusable foundation that could support other domains (fitness, finance, learning) by loading different ontologies.
+- **General Graph Memory System:** Generic graph-based memory layer (not GTD-specific) that supports arbitrary ontologies via node types and connection types. For MVP, loaded with GTD ontology (node types: Task, State, Context; connection type: DependsOn). Projects, Next Actions, and Waiting For emerge as derived views from queries (Projects = Tasks with outgoing dependencies; Next Actions = actionable Tasks; Waiting For = Tasks with external responsibility). Enables relationship queries like "what's blocked?" and "what dependencies does this task have?" Built as reusable foundation that could support other domains (fitness, finance, learning) by loading different ontologies.
 
 - **Observations and Patterns Layer:** Persistent storage of user values, preferences, priorities, and coaching observations (e.g., "user avoids uncomfortable reviews," "risk engine: spending more time than value warrants") using existing MCP Memory Server.
 
@@ -74,8 +74,11 @@ This project delivers an intelligent GTD coaching assistant that combines conver
   - Generic graph memory system (not GTD-specific)
   - Supports arbitrary node types and connection types via ontology definition
   - Core operations: create/read/update/delete nodes, create/query connections, search content
-  - For MVP: Loaded with GTD ontology (node types: Project, Action; connection types: NextAction, Blocks, WaitingOn)
-  - Properties: Minimal (stored in registry for fast queries) - e.g., status, timestamps
+  - For MVP: Loaded with GTD ontology (node types: Task, State, Context; connection type: DependsOn; Context nodes track location/tool availability)
+  - Derived views: Projects (Tasks with outgoing dependencies), Next Actions (actionable Tasks), Waiting For (Tasks with external responsibility)
+  - State nodes model world conditions with ANY/ALL logic; Task nodes model actions
+  - Special UNSPECIFIED State singleton for marking tasks needing decomposition
+  - Properties: Minimal (stored in registry for fast queries) - e.g., isComplete, isTrue, logic, responsibleParty, timestamps
   - Content: Rich descriptions in files (loaded on demand)
   - Extensible: Same graph system could support other domains (fitness, finance, learning) by loading different ontologies
 
@@ -197,7 +200,7 @@ Criteria marked **P0** are must-haves for minimal viable MVP. **P1** criteria si
 - **Mobile Apps:** Desktop only for MVP; mobile would require platform-specific development
 - **Calendar Integration:** Manual time-sensitive items for MVP; calendar sync adds integration complexity
 - **Email Integration:** Manual task capture for MVP; email parsing adds complexity
-- **Context/Person Nodes:** Deferred to Phase 2 to minimize MVP graph complexity
+- **Person Nodes:** Deferred to Phase 2 to minimize MVP graph complexity (Context nodes included in MVP for location/tool availability tracking)
 - **Rich Visualizations:** Text-based interface for MVP; visualizations require UI development
 - **Proactive Notifications:** Reactive (user-initiated) for MVP; proactive requires scheduling/alerting infrastructure
 - **Advanced Pattern Detection:** Basic patterns (over-investment, avoidance, stuck projects) for MVP; energy levels, time-of-day, cross-domain insights in Phase 2
@@ -243,10 +246,10 @@ Criteria marked **P0** are must-haves for minimal viable MVP. **P1** criteria si
 - **Mitigation:** If coaching quality insufficient, focus on improving prompts/system instructions before adding features
 
 **Assumption 2: Graph Memory is Essential**
-- **What:** GTD relationships (NextAction, Blocks, WaitingOn) require graph structure; simpler key-value storage would lead to consistency bugs and missed relationships
+- **What:** GTD relationships (dependencies between tasks, state-based preconditions) require graph structure; simpler key-value storage would lead to consistency bugs and missed relationships
 - **Risk if wrong:** Over-engineered solution; wasted development time on unnecessary complexity
-- **Validation:** Solo developer (user) strongly believes this based on GTD methodology and relationship complexity
-- **Mitigation:** Build minimal graph ontology first (just Projects, Actions, 3 connection types); can simplify later if proves unnecessary
+- **Validation:** Solo developer (user) strongly believes this based on GTD methodology and relationship complexity; evolved through multi-model architectural discussions
+- **Mitigation:** Build minimal graph ontology first (Task, State, Context nodes; DependsOn connection type; derived views for Projects/Next Actions/Waiting For); can simplify later if proves unnecessary
 
 **Assumption 3: File-Storage-Backend Nearly Complete**
 - **What:** ~1 day remaining to complete file-storage-backend implementation
