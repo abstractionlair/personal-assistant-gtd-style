@@ -1,0 +1,338 @@
+[
+  {
+    "name": "capture_simple_task",
+    "category": "Capture",
+    "prompt": "The user says: \"I need to call the dentist tomorrow to schedule a cleaning.\" Follow the GTD conversational layer instructions to persist this task, show the tool call you make, and confirm the capture back to the user.",
+    "expected_behavior": "Create a Task node with isComplete=false and describe it as a next action before acknowledging the user.",
+    "success_criteria": [
+      "create_node({",
+      "\"type\": \"Task\"",
+      "\"isComplete\": false",
+      "Captured task"
+    ]
+  },
+  {
+    "name": "capture_task_with_context",
+    "category": "Capture",
+    "prompt": "The user says: \"Log a reminder to print the quarterly packets when I'm at the office.\" Use contexts properly when persisting this request.",
+    "expected_behavior": "Create the task, ensure context @office exists or is created, connect the task to the context, and explain the availability expectation.",
+    "success_criteria": [
+      "create_node({",
+      "\"type\": \"Context\"",
+      "\"isAvailable\": true",
+      "DependsOn"
+    ]
+  },
+  {
+    "name": "capture_task_with_dependency",
+    "category": "Capture",
+    "prompt": "The user says: \"I need to send the board update, but only after I finish the financial summary.\" Capture the dependent work correctly.",
+    "expected_behavior": "Create both tasks if needed and add a DependsOn connection so the board update waits for the summary.",
+    "success_criteria": [
+      "\"Send the board update\"",
+      "\"type\": \"Task\"",
+      "\"type\": \"DependsOn\"",
+      "create_connection"
+    ]
+  },
+  {
+    "name": "capture_task_with_unspecified",
+    "category": "Capture",
+    "prompt": "The user says: \"I'm not sure what the next step is for the marketing launch, but something needs to happen.\" Persist the task in a way that reflects the uncertainty.",
+    "expected_behavior": "Create a task that depends on the UNSPECIFIED singleton and explain that it blocks actionability.",
+    "success_criteria": [
+      "UNSPECIFIED",
+      "\"type\": \"Task\"",
+      "DependsOn",
+      "blocked until we define the next step"
+    ]
+  },
+  {
+    "name": "capture_duplicate_detection",
+    "category": "Capture",
+    "prompt": "The user says: \"Add a task to finalize the vendor contract.\" The graph already contains a very similar task. Follow the spec's duplicate detection guidance.",
+    "expected_behavior": "Query for similar tasks, flag the potential duplicate, and ask the user how to proceed.",
+    "success_criteria": [
+      "query_nodes({",
+      "possible duplicate",
+      "Would you like me to reuse",
+      "semantic similarity"
+    ]
+  },
+  {
+    "name": "capture_project_with_subtasks",
+    "category": "Capture",
+    "prompt": "The user says: \"I need to prepare the investor packet: gather metrics, draft the narrative, and polish the slides.\" Capture this in project form per the planning model.",
+    "expected_behavior": "Create a parent project task and three child tasks, wiring DependsOn edges from the parent to each child.",
+    "success_criteria": [
+      "\"gather metrics\"",
+      "\"draft the narrative\"",
+      "\"polish the slides\"",
+      "parent project task"
+    ]
+  },
+  {
+    "name": "capture_delegated_task",
+    "category": "Capture",
+    "prompt": "The user says: \"Log that Jane is handling the new logo design.\" Persist this as a waiting-for item.",
+    "expected_behavior": "Create or update a task with responsibleParty set to Jane, isComplete=false, and mark it as waiting for someone else.",
+    "success_criteria": [
+      "\"responsibleParty\": \"Jane\"",
+      "\"isComplete\": false",
+      "Waiting For",
+      "I'll keep an eye on it"
+    ]
+  },
+  {
+    "name": "capture_manual_state",
+    "category": "Capture",
+    "prompt": "The user says: \"Track that the conference room projector is working right now.\" Follow MANUAL state guidance.",
+    "expected_behavior": "Create or update a MANUAL state node with isTrue=true and explain that the user must report changes.",
+    "success_criteria": [
+      "\"type\": \"State\"",
+      "\"logic\": \"MANUAL\"",
+      "\"isTrue\": true",
+      "Let me know if this changes"
+    ]
+  },
+  {
+    "name": "capture_infer_obvious_context",
+    "category": "Capture",
+    "prompt": "The user says: \"Add a reminder to call the dentist.\" Apply the inference guidance for obvious contexts.",
+    "expected_behavior": "Create the task, infer that it requires a phone context, attach the dependency, and mention the inference explicitly.",
+    "success_criteria": [
+      "create_node({",
+      "\"type\": \"Context\"",
+      "@phone",
+      "DependsOn"
+    ]
+  },
+  {
+    "name": "query_next_actions",
+    "category": "Query",
+    "prompt": "The user asks: \"What next actions are available right now?\" Assume contexts and dependencies should be respected.",
+    "expected_behavior": "Run the Next Actions query that filters for incomplete tasks with satisfied dependencies and exclude those tied to UNSPECIFIED.",
+    "success_criteria": [
+      "query_nodes({",
+      "\"isComplete\": false",
+      "get_connected_nodes",
+      "Next actions"
+    ]
+  },
+  {
+    "name": "query_projects",
+    "category": "Query",
+    "prompt": "The user asks: \"Show me my active projects.\" Use the derived view definition.",
+    "expected_behavior": "Identify tasks with outgoing DependsOn edges, list incomplete ones, and summarize dependency counts.",
+    "success_criteria": [
+      "query_connections({",
+      "\"type\": \"DependsOn\"",
+      "Project:",
+      "incomplete dependencies"
+    ]
+  },
+  {
+    "name": "query_waiting_for",
+    "category": "Query",
+    "prompt": "The user says: \"Remind me what I'm waiting on from others.\"",
+    "expected_behavior": "Return the Waiting For list: tasks with responsibleParty not equal to me and isComplete=false.",
+    "success_criteria": [
+      "\"responsibleParty\"",
+      "\"isComplete\": false",
+      "Waiting For",
+      "delegated"
+    ]
+  },
+  {
+    "name": "query_context_filtered",
+    "category": "Query",
+    "prompt": "The user says: \"I'm at home with my laptop. What can I do?\" Respect context availability rules.",
+    "expected_behavior": "Filter next actions by contexts that are available and match @home and any required tools.",
+    "success_criteria": [
+      "\"Context\"",
+      "\"isAvailable\": true",
+      "@home",
+      "Filtered next actions"
+    ]
+  },
+  {
+    "name": "query_stuck_projects",
+    "category": "Query",
+    "prompt": "The user says: \"Which projects are stuck?\" Use the spec's definition of stuck.",
+    "expected_behavior": "Identify projects with no dependency completion in the last 14 days and surface them with timestamps.",
+    "success_criteria": [
+      "no recent activity",
+      "14 days",
+      "Stuck project",
+      "last progress"
+    ]
+  },
+  {
+    "name": "query_specific_lookup",
+    "category": "Query",
+    "prompt": "The user asks: \"Do we already have anything about renewing the security certificates?\" Search intelligently.",
+    "expected_behavior": "Perform a semantic search for matching tasks and return any relevant nodes with context.",
+    "success_criteria": [
+      "query_nodes({",
+      "security certificates",
+      "Found",
+      "related work"
+    ]
+  },
+  {
+    "name": "update_mark_complete",
+    "category": "Update",
+    "prompt": "The user says: \"I finished filing the quarterly taxes.\" Update the task appropriately.",
+    "expected_behavior": "Find the matching task, set isComplete=true, record completion message, and mention follow-up if dependencies unblock projects.",
+    "success_criteria": [
+      "update_node({",
+      "\"isComplete\": true",
+      "Marked complete",
+      "project is now unblocked"
+    ]
+  },
+  {
+    "name": "update_task_details",
+    "category": "Update",
+    "prompt": "The user says: \"Update the draft press release task with a note that marketing requested bullet points.\"",
+    "expected_behavior": "Retrieve the task, append the note to its content, leave properties intact, and confirm the addition.",
+    "success_criteria": [
+      "get_node({",
+      "update_node({",
+      "Added note",
+      "properties unchanged"
+    ]
+  },
+  {
+    "name": "update_context_availability",
+    "category": "Update",
+    "prompt": "The user says: \"I'm leaving the office; mark @office as unavailable.\"",
+    "expected_behavior": "Update the @office context node to isAvailable=false and explain the implication for next actions.",
+    "success_criteria": [
+      "\"type\": \"Context\"",
+      "\"isAvailable\": false",
+      "update_node({",
+      "Next actions requiring @office will be hidden"
+    ]
+  },
+  {
+    "name": "update_manual_state",
+    "category": "Update",
+    "prompt": "The user says: \"Note that the design review is now approved.\" Update the corresponding MANUAL state.",
+    "expected_behavior": "Set the relevant state node to isTrue=true, clarify it is manual, and remind the user to report future changes.",
+    "success_criteria": [
+      "\"type\": \"State\"",
+      "\"logic\": \"MANUAL\"",
+      "\"isTrue\": true",
+      "Thanks for the update"
+    ]
+  },
+  {
+    "name": "update_no_automatic_parent_completion",
+    "category": "Update",
+    "prompt": "All subtasks of \"Prepare investor packet\" are complete. Confirm how to handle the parent project task.",
+    "expected_behavior": "Explain that the project is not auto-completed, ask the user if they want it marked complete, and only proceed with explicit confirmation.",
+    "success_criteria": [
+      "not automatically marked complete",
+      "Do you want me to mark the project complete",
+      "update_node({",
+      "\"isComplete\": true"
+    ]
+  },
+  {
+    "name": "delete_with_dependency_warning",
+    "category": "Delete",
+    "prompt": "The user says: \"Delete the old onboarding checklist.\" It still has dependencies. Follow the warning protocol.",
+    "expected_behavior": "Fetch dependencies, warn the user about impacts, and only proceed after explicit confirmation.",
+    "success_criteria": [
+      "get_connected_nodes({",
+      "warn",
+      "depends on it",
+      "Need explicit confirmation"
+    ]
+  },
+  {
+    "name": "delete_cascade_confirmed",
+    "category": "Delete",
+    "prompt": "After warning, the user responds: \"Yes, go ahead and remove it even if it deletes the subtasks.\" Finish cleanup.",
+    "expected_behavior": "Proceed with deletions in correct order, including cascading dependencies, and summarize what was removed.",
+    "success_criteria": [
+      "delete_node({",
+      "Removing dependent items",
+      "cascade",
+      "Deleted"
+    ]
+  },
+  {
+    "name": "edge_invalid_delete_request",
+    "category": "Edge",
+    "prompt": "The user says: \"Delete the 'obsolete feature spec' task.\" Assume no matching task exists.",
+    "expected_behavior": "Report that no task was found, avoid making changes, and offer to search or capture if needed.",
+    "success_criteria": [
+      "I don't see a task matching",
+      "No changes made",
+      "Would you like me to search",
+      "query_nodes({"
+    ]
+  },
+  {
+    "name": "edge_empty_results",
+    "category": "Edge",
+    "prompt": "The user asks: \"Any next actions for @studio?\" No matching items exist.",
+    "expected_behavior": "Run the query, detect there are no results, and reply with a helpful message encouraging capture or context changes.",
+    "success_criteria": [
+      "query_nodes({",
+      "No next actions require @studio",
+      "capture something new",
+      "consider changing contexts"
+    ]
+  },
+  {
+    "name": "edge_ambiguous_reference",
+    "category": "Edge",
+    "prompt": "The user says: \"Mark the proposal done.\" There are two proposals. Handle the ambiguity.",
+    "expected_behavior": "Search for matches, present disambiguation choices, and wait for clarification before updating anything.",
+    "success_criteria": [
+      "multiple matches",
+      "Please clarify",
+      "query_nodes({",
+      "No changes made yet"
+    ]
+  },
+  {
+    "name": "edge_dependency_direction_clarification",
+    "category": "Edge",
+    "prompt": "The user says: \"Link research and draft, whichever depends on the other.\" The dependency direction is unclear.",
+    "expected_behavior": "Ask which task depends on the other before creating the connection, and wait for confirmation.",
+    "success_criteria": [
+      "Does",
+      "depend on",
+      "or the other way around",
+      "Please confirm the direction"
+    ]
+  },
+  {
+    "name": "edge_conflicting_updates",
+    "category": "Edge",
+    "prompt": "The user says: \"I'm done with the hiring pipeline, but keep it open for now.\" Respect the conflict resolution guidance.",
+    "expected_behavior": "Clarify the user's intent (complete vs keep open) and confirm how to proceed before updating.",
+    "success_criteria": [
+      "conflicting instructions",
+      "Do you want me to mark it complete",
+      "Clarifying",
+      "awaiting your decision"
+    ]
+  },
+  {
+    "name": "edge_undefined_context",
+    "category": "Edge",
+    "prompt": "The user says: \"I'm at the makerspace now.\" The context does not exist yet.",
+    "expected_behavior": "Offer to create a new context with isAvailable=true instead of assuming it exists.",
+    "success_criteria": [
+      "I don't have a context named @makerspace",
+      "create_node({",
+      "\"type\": \"Context\"",
+      "Should I create it now"
+    ]
+  }
+]

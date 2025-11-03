@@ -1,0 +1,4 @@
+{
+  "_comment": "Populate the servers map with MCP server definitions when available. The eval harness will automatically pass this config once at least one server is listed.",
+  "servers": {}
+}
