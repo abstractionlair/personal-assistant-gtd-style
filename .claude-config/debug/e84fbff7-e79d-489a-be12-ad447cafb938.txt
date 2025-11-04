@@ -1,0 +1,89 @@
+[DEBUG] Watching for changes in setting files /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude/settings.local.json...
+[DEBUG] Applying permission update: Adding 19 allow rule(s) to destination 'localSettings': ["Read(//Volumes/Share 1/Projects/mcp-servers/file-storage-backend/**)","WebSearch","WebFetch(domain:hub.continue.dev)","WebFetch(domain:github.com)","Bash(git rm:*)","Bash(git add:*)","Bash(npm info:*)","Read(//Users/scottmcguire/.nvm/versions/node/v24.11.0/lib/node_modules/@modelcontextprotocol/sdk/dist/esm/server/**)","Read(//Users/scottmcguire/.nvm/versions/node/v24.11.0/lib/node_modules/@modelcontextprotocol/sdk/**)","Bash(cat:*)","Bash(npm test)","Bash(npm install:*)","Read(//Volumes/Share 1/Projects/**)","Bash(git checkout:*)","Bash(git commit:*)","Bash(npm run build:*)","Bash(claude mcp list:*)","Bash(claude mcp add gtd-graph-memory --scope user -e BASE_PATH=/Users/scottmcguire/personal-assistant-data/gtd-graph -- node \"/Volumes/Share 1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js\")","Bash(claude:*)"]
+[DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+[DEBUG] Total LSP servers loaded: 0
+[DEBUG] LSP manager initialized with 0 servers
+[DEBUG] LSP server manager initialized successfully
+[DEBUG] Loading skills from directories: managed=/Library/Application Support/ClaudeCode/.claude/skills, user=/Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/skills, project=/Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude/skills
+[DEBUG] >>>>> getPluginSkills CALLED <<<<<
+[DEBUG] Creating shell snapshot for zsh (/bin/zsh)
+[DEBUG] Looking for shell config file: /Users/scottmcguire/.zshrc
+[DEBUG] Snapshots directory: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/shell-snapshots
+[DEBUG] Creating snapshot at: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/shell-snapshots/snapshot-zsh-1762139650835-6zlmup.sh
+[DEBUG] Shell binary exists: true
+[DEBUG] Execution timeout: 10000ms
+[DEBUG] Writing to temp file: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/todos/e84fbff7-e79d-489a-be12-ad447cafb938-agent-e84fbff7-e79d-489a-be12-ad447cafb938.json.tmp.62002.1762139650839
+[DEBUG] Temp file written successfully, size: 2 bytes
+[DEBUG] Renaming /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/todos/e84fbff7-e79d-489a-be12-ad447cafb938-agent-e84fbff7-e79d-489a-be12-ad447cafb938.json.tmp.62002.1762139650839 to /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/todos/e84fbff7-e79d-489a-be12-ad447cafb938-agent-e84fbff7-e79d-489a-be12-ad447cafb938.json
+[DEBUG] File /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/todos/e84fbff7-e79d-489a-be12-ad447cafb938-agent-e84fbff7-e79d-489a-be12-ad447cafb938.json written atomically
+[DEBUG] getPluginSkills: Processing 0 enabled plugins
+[DEBUG] Total plugin skills loaded: 0
+[DEBUG] Total plugin commands loaded: 0
+[DEBUG] Registered 0 hooks from 0 plugins
+[DEBUG] Loaded 0 unique skills (managed: 0, user: 0, project: 0, duplicates removed: 0)
+[DEBUG] getSkillsIfEnabled returning: 0 skill dir commands, 0 plugin skills
+[DEBUG] Total plugin agents loaded: 0
+[DEBUG] Getting matching hook commands for SessionStart with query: startup
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "startup" (0 before deduplication)
+[DEBUG] Hooks: getAsyncHookResponseAttachments called
+[DEBUG] Hooks: checkForNewResponses called
+[DEBUG] Hooks: Found 0 total hooks in registry
+[DEBUG] Hooks: checkForNewResponses returning 0 responses
+[DEBUG] Getting matching hook commands for UserPromptSubmit with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+[DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg)
+[DEBUG] Slash commands included in SlashCommand tool:
+[DEBUG] Skills and commands included in Skill tool:
+[ERROR] "Error: Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the \"X-Api-Key\" or \"Authorization\" headers to be explicitly omitted\n    at Ck.validateHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:930)\n    at Ck.buildHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:8412)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Ck.buildRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:7470)\n    at async Ck.makeRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:3309)\n    at async FVA (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:1316:8767)\n    at async NwA (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3384:1088)\n    at async N01 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3384:1297)\n    at async Ld2 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3394:531)"
+[DEBUG] Shell snapshot created successfully (2094 bytes)
+[DEBUG] Writing to temp file: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json.tmp.62002.1762139653262
+[DEBUG] Preserving file permissions: 100600
+[DEBUG] Temp file written successfully, size: 376 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json.tmp.62002.1762139653262 to /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json
+[DEBUG] File /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json written atomically
+[DEBUG] Writing to temp file: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json.tmp.62002.1762139653271
+[DEBUG] Preserving file permissions: 100600
+[DEBUG] Temp file written successfully, size: 376 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json.tmp.62002.1762139653271 to /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json
+[DEBUG] File /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json written atomically
+[DEBUG] Writing to temp file: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json.tmp.62002.1762139653279
+[DEBUG] Preserving file permissions: 100600
+[DEBUG] Temp file written successfully, size: 376 bytes
+[DEBUG] Applied original permissions to temp file
+[DEBUG] Renaming /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json.tmp.62002.1762139653279 to /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json
+[DEBUG] File /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/.claude.json written atomically
+[DEBUG] Skills and commands included in Skill tool:
+[DEBUG] Slash commands included in SlashCommand tool:
+[ERROR] Error streaming, falling back to non-streaming mode: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] Error streaming, falling back to non-streaming mode: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] Error streaming, falling back to non-streaming mode: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] Error streaming, falling back to non-streaming mode: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] Error in non-streaming fallback: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] "Error: Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the \"X-Api-Key\" or \"Authorization\" headers to be explicitly omitted\n    at Ck.validateHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:930)\n    at Ck.buildHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:8412)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Ck.buildRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:7470)\n    at async Ck.makeRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:3309)\n    at async seA.model (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14755)\n    at async seA (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:2743:39781)\n    at async hd2 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14909)\n    at async file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:8414\n    at async re1 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:1970)"
+[ERROR] Error in non-streaming fallback: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] "Error: Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the \"X-Api-Key\" or \"Authorization\" headers to be explicitly omitted\n    at Ck.validateHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:930)\n    at Ck.buildHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:8412)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Ck.buildRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:7470)\n    at async Ck.makeRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:3309)\n    at async seA.model (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14755)\n    at async seA (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:2743:39781)\n    at async hd2 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14909)\n    at async file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:8646\n    at async re1 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:1970)"
+[ERROR] Error in non-streaming fallback: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] "Error: Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the \"X-Api-Key\" or \"Authorization\" headers to be explicitly omitted\n    at Ck.validateHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:930)\n    at Ck.buildHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:8412)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Ck.buildRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:7470)\n    at async Ck.makeRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:3309)\n    at async seA.model (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14755)\n    at async seA (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:2743:39781)\n    at async hd2 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14909)\n    at async file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:8646\n    at async re1 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:1970)"
+[ERROR] Error in non-streaming fallback: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+[ERROR] "Error: Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the \"X-Api-Key\" or \"Authorization\" headers to be explicitly omitted\n    at Ck.validateHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:930)\n    at Ck.buildHeaders (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:8412)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Ck.buildRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:7470)\n    at async Ck.makeRequest (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:359:3309)\n    at async seA.model (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14755)\n    at async seA (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:2743:39781)\n    at async hd2 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:14909)\n    at async file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:8646\n    at async re1 (file:///opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/cli.js:3395:1970)"
+[DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+[DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+[DEBUG] Getting matching hook commands for Stop with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+[DEBUG] Getting matching hook commands for SessionEnd with query: undefined
+[DEBUG] Found 0 hook matchers in settings
+[DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+[DEBUG] Cleaned up session snapshot: /Volumes/Share 1/Projects/personal-assistant-gtd-style/.claude-config/shell-snapshots/snapshot-zsh-1762139650835-6zlmup.sh
+[DEBUG] LSP server manager shut down successfully
+[DEBUG] BigQuery metrics exporter flush complete
+[DEBUG] BigQuery metrics exporter flush complete
+[DEBUG] BigQuery metrics exporter shutdown complete

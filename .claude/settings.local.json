@@ -15,7 +15,11 @@
       "Bash(npm install:*)",
       "Read(//Volumes/Share 1/Projects/**)",
       "Bash(git checkout:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(claude mcp list:*)",
+      "Bash(claude mcp add gtd-graph-memory --scope user -e BASE_PATH=/Users/scottmcguire/personal-assistant-data/gtd-graph -- node \"/Volumes/Share 1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js\")",
+      "Bash(claude:*)"
     ],
     "deny": [],
     "ask": []

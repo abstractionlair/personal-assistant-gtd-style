@@ -403,9 +403,18 @@ When roadmap adjustment needed:
 5. **Update ROADMAP.md** with new version in Document Control section
 6. **Communicate** (in solo project, this means documenting for future reference and AI agents)
 
+## Technical Debt
+
+**MCP-to-MCP Architecture Divergence:**
+The graph-memory-core implementation uses direct Node.js `fs` calls instead of calling file-storage-backend MCP tools as originally specified in specs. This architectural simplification works but diverges from the spec design of separate MCP servers communicating via MCP protocol. Consider refactoring in a future phase to align implementation with spec design for better separation of concerns and architectural consistency.
+
 ## Document Control
 
 ### Version History
+
+**Version 1.2 (2025-11-02)**
+- Added Technical Debt section documenting MCP-to-MCP architecture divergence
+- Implementation uses embedded file operations instead of separate file-storage-backend MCP server
 
 **Version 1.1 (2025-10-30)**
 - Addressed roadmap review suggestions (reviews/roadmap/2025-10-30-ROADMAP-APPROVED.md)

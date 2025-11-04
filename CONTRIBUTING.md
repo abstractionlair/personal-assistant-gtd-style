@@ -73,3 +73,18 @@ See [GUIDELINES.md](GUIDELINES.md) for project-specific coding standards.
 ### Testing Requirements
 
 See [GUIDELINES.md](GUIDELINES.md) for testing standards.
+
+### Running Conversational Layer Evaluations
+
+This project uses an LLM-as-judge harness for the GTD conversational layer. The harness supports two suites:
+
+- Assistant suite (system-prompt behavior): exercises the production prompt against natural prompts.
+- Judge suite (negative controls): validates the rubric and safety guardrails using canned replies.
+
+Commands:
+- All cases: `python tests/test_conversational_layer.py`
+- Assistant-only: `python tests/test_conversational_layer.py --suite assistant`
+- Judge-only: `python tests/test_conversational_layer.py --suite judge`
+- Single case: `python tests/test_conversational_layer.py --case <name>`
+
+Details and philosophy: see `tests/README.md`.
