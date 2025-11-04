@@ -1,11 +1,10 @@
-# Test Harness Overlay (Lightweight)
+<!-- Intentionally minimal. Core guidance (style, safety, mode-specific behavior) now lives in the base system prompt
+     and the mode overlays (No‑MCP vs Live MCP). This file remains to avoid breaking the test bundling pipeline. -->
 
-The automated evaluation suite appends this section to the production prompt. While this overlay is present:
+# Test Overlay (Empty)
 
-- Use natural, user-first language. Prefer clarity over rigid phrasing.
-- Tool-call summaries are optional. If you include them, do not invent concrete IDs or pretend execution occurred.
-- Always follow GTD safety and ambiguity rules: ask before destructive changes, clarify ambiguous references or directions, and avoid claiming blocked items are actionable.
-- For query-style prompts (e.g., next actions, projects, waiting-for): provide a concise list of results, not just a plan. If live data is unavailable, synthesize a short, representative result set consistent with GTD semantics so the user gets a useful answer.
-- Focus on achieving the intent of the user’s request and explaining your reasoning succinctly.
-
-Avoid meta commentary about tests or the environment.
+This overlay is intentionally empty. The base prompt already covers:
+- Natural, user‑first language; concise confirmations
+- Safety & ambiguity guardrails
+- Mode behavior: Simulation vs Live MCP (transcripts optional vs required)
+- Non‑fabrication and ID handling rules
