@@ -1,4 +1,16 @@
 {
-  "_comment": "Populate the servers map with MCP server definitions when available. The eval harness will automatically pass this config once at least one server is listed.",
-  "servers": {}
+  "servers": {
+    "graph-memory-core": {
+      "command": "node",
+      "args": ["/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js"],
+      "env": { "BASE_PATH": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory" }
+    }
+  },
+  "mcpServers": {
+    "graph-memory-core": {
+      "command": "node",
+      "args": ["/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js"],
+      "env": { "BASE_PATH": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory" }
+    }
+  }
 }

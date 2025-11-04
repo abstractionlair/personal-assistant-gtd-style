@@ -292,7 +292,7 @@ def base_args(system_prompt: str, prompt: str, mcp: Path | None) -> List[str]:
     args = [CLAUDE_CMD]
     if mcp:
         args += ["--mcp-config", str(mcp)]
-    args += ["--print", "--output-format", "json", "--system-prompt", system_prompt, prompt]
+    args += ["--dangerously-skip-permissions", "--print", "--output-format", "json", "--system-prompt", system_prompt, prompt]
     return args
 
 

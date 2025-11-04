@@ -1,0 +1,12 @@
+node_types:
+  - Task
+  - State
+  - Context
+connection_types:
+  - name: DependsOn
+    from_types:
+      - Task
+    to_types:
+      - Task
+      - State
+      - Context

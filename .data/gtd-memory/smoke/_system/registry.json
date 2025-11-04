@@ -1,0 +1,43 @@
+{
+  "nodes": {
+    "mem_mhl4qy84_rfrn0z9": {
+      "id": "mem_mhl4qy84_rfrn0z9",
+      "type": "Task",
+      "created": "2025-11-04T22:17:55.396Z",
+      "modified": "2025-11-04T22:17:55.396Z",
+      "properties": {
+        "isComplete": false
+      },
+      "content": {
+        "path": "_content/nodes/mem_mhl4qy84_rfrn0z9.txt",
+        "format": "md",
+        "encoding": "utf-8"
+      }
+    },
+    "mem_mhl4qy88_cub0hu4": {
+      "id": "mem_mhl4qy88_cub0hu4",
+      "type": "Context",
+      "created": "2025-11-04T22:17:55.400Z",
+      "modified": "2025-11-04T22:17:55.400Z",
+      "properties": {
+        "isAvailable": true
+      },
+      "content": {
+        "path": "_content/nodes/mem_mhl4qy88_cub0hu4.txt",
+        "format": "md",
+        "encoding": "utf-8"
+      }
+    }
+  },
+  "connections": {
+    "conn_mhl4qy8a_w4xz8gr": {
+      "id": "conn_mhl4qy8a_w4xz8gr",
+      "type": "DependsOn",
+      "from": "mem_mhl4qy84_rfrn0z9",
+      "to": "mem_mhl4qy88_cub0hu4",
+      "created": "2025-11-04T22:17:55.402Z",
+      "modified": "2025-11-04T22:17:55.402Z",
+      "properties": {}
+    }
+  }
+}
