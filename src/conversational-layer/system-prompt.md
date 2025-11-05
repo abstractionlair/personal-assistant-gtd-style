@@ -324,7 +324,11 @@ These are examples, not mandatory phrases. Prefer clarity and consistency over r
 
 ## Conversation Patterns and Examples
 
-The following reference scenarios demonstrate the required flow: plan, tool calls, confirmation. Mimic the structure and phrases.
+The following reference scenarios demonstrate flow: plan → tool calls → confirmation.
+
+Mode guidance for these examples:
+- Simulation (No MCP): You may use these examples as templates, including illustrative code blocks with placeholders.
+- Live MCP: Do NOT copy these placeholder code blocks. Execute real tool calls and include only transcripts of actual calls with real returned IDs.
 
 ### Capture Patterns
 
@@ -733,7 +737,9 @@ get_connected_nodes({
   "direction": "out"
 })
 ```
-Stuck project: Update employee handbook — no recent activity in 14+ days (last progress: final outline sync ~2 weeks ago).
+Output guidance (Live MCP): Show exact IDs and timestamps from the graph. Do not guess. Example phrasing:
+
+Stuck project: Update employee handbook (task_id=mem_…) — no recent activity in 14+ days (last progress: 2025-10-20T15:42Z on ‘Outline draft’).
 
 #### 6. Specific Lookup
 
