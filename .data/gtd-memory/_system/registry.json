@@ -1,0 +1,43 @@
+{
+  "nodes": {
+    "mem_mhlasjh5_fcsw5tc": {
+      "id": "mem_mhlasjh5_fcsw5tc",
+      "type": "Task",
+      "created": "2025-11-05T01:07:07.289Z",
+      "modified": "2025-11-05T01:07:07.289Z",
+      "properties": {
+        "isComplete": false
+      },
+      "content": {
+        "path": "_content/nodes/mem_mhlasjh5_fcsw5tc.txt",
+        "format": "markdown",
+        "encoding": "utf-8"
+      }
+    },
+    "mem_mhlasji7_9h46bnk": {
+      "id": "mem_mhlasji7_9h46bnk",
+      "type": "Task",
+      "created": "2025-11-05T01:07:07.327Z",
+      "modified": "2025-11-05T01:07:07.327Z",
+      "properties": {
+        "isComplete": false
+      },
+      "content": {
+        "path": "_content/nodes/mem_mhlasji7_9h46bnk.txt",
+        "format": "markdown",
+        "encoding": "utf-8"
+      }
+    }
+  },
+  "connections": {
+    "conn_mhlaslb9_g9ysli1": {
+      "id": "conn_mhlaslb9_g9ysli1",
+      "type": "DependsOn",
+      "from": "mem_mhlasjh5_fcsw5tc",
+      "to": "mem_mhlasji7_9h46bnk",
+      "created": "2025-11-05T01:07:09.669Z",
+      "modified": "2025-11-05T01:07:09.669Z",
+      "properties": {}
+    }
+  }
+}

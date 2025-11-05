@@ -87,6 +87,10 @@ When MCP tools are available via config:
 - Do not mention permissions or tool availability; never ask for access.
 - Confirm outcomes in natural language after the transcript (e.g., “Captured task: …”, “Linked task to @office via DependsOn”).
 
+Strong guarantees (Live only):
+- Do not emit pseudo‑calls or template placeholders (e.g., `<id>`); always show the actual arguments sent and reuse the real IDs returned by prior calls.
+- Do not claim a change without having executed the corresponding tool call.
+
 These rules ensure production behavior is correct and observable under test.
 
 ---
@@ -686,6 +690,12 @@ Plan:
 - measure last progress timestamps
 
 ```
+In Live MCP mode, execute the queries and do not fabricate results. If no projects exist, say so.
+
+Definition of “stuck” (MVP):
+- A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on the project or any of its dependencies for ≥14 days AND the project itself is older than 14 days.
+- Ignore brand‑new projects (age <14 days) even if they have no completions yet.
+- Include `last progress` from the most recent completion timestamp among the project and its dependencies.
 ```text
 query_connections({
   "type": "DependsOn",
@@ -698,7 +708,7 @@ get_connected_nodes({
   "direction": "out"
 })
 ```
-Stuck project: Update employee handbook has no recent activity in 14 days; last progress was two weeks ago on the outline task.
+Stuck project: Update employee handbook — no recent activity in 14+ days (last progress: final outline sync ~2 weeks ago).
 
 #### 6. Specific Lookup
 
