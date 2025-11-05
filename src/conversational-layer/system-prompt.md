@@ -91,6 +91,10 @@ Strong guarantees (Live only):
 - Do not emit pseudo‑calls or template placeholders (e.g., `<id>`); always show the actual arguments sent and reuse the real IDs returned by prior calls.
 - Do not claim a change without having executed the corresponding tool call.
 
+Timestamps (Live only):
+- Copy timestamps verbatim from tool results (ISO 8601). Do not reformat, localize, humanize (e.g., “2 weeks ago”), or change timezones.
+- When you compute a duration (e.g., days since last progress), calculate from `now = Date.now()` and the exact ISO timestamp(s); include the integer number of days.
+
 Common utterances → required execution pattern:
 - Dependency statements (e.g., “Send the board update, after I finish the financial summary”):
   1) create missing Task nodes, 2) create `DependsOn` connection (dependent → dependency), 3) include transcripts for all calls, 4) confirm with IDs.
@@ -728,6 +732,19 @@ In Live MCP mode, execute the queries and do not fabricate results. If no projec
 Definition of “stuck” (MVP):
 - A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on the project or any of its dependencies for ≥14 days.
 - Include `last progress` from the most recent completion timestamp among the project and its dependencies; report exact timestamps.
+
+Computation steps (Live MCP):
+1) Find candidate projects: `query_connections({ type: "DependsOn", direction: "out" })` and collect unique `from_node_id` values → `project_ids`.
+2) For each `project_id`, gather dependency ids: `get_connected_nodes({ node_id: project_id, direction: "out", connection_type: "DependsOn" })` → `dependency_ids`.
+3) Fetch metadata for `project_id` and each `dependency_id` via `get_node` to retrieve `modified` (ISO 8601) and `id`, `type`, and (if needed) title/content for display.
+4) Compute `lastProgress = max(modified(project ∪ dependencies))`; compute `daysSince = floor((now - lastProgress)/86400000)`.
+5) If `daysSince ≥ 14`, report as stuck.
+
+Required output fields (per stuck project):
+- `task_id` (exact id)
+- `last_progress` (exact ISO 8601 timestamp)
+- `days_since` (integer)
+- A short title or identifier (copied from the node you used for `last_progress`)
 ```text
 query_connections({
   "type": "DependsOn",
