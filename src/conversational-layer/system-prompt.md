@@ -732,13 +732,15 @@ In Live MCP mode, execute the queries and do not fabricate results. If no projec
 Definition of “stuck” (MVP):
 - A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on any of its dependencies for ≥14 days.
 - “Completion activity” = a dependency Task having `properties.isComplete == true`; use that node’s `modified` timestamp as the completion time.
-- Report `last_completion` as the most recent completion timestamp among dependencies (ISO 8601). If no dependencies are completed at all, set `last_completion = null` and treat as no recent completion.
+- Report `last_completion` as the most recent completion timestamp among dependencies (ISO 8601). If no dependencies are completed at all, set `last_completion = null` and evaluate against the 14‑day threshold using the project’s `created` timestamp.
 
 Computation steps (Live MCP):
 1) Find candidate projects: `query_connections({ type: "DependsOn", direction: "out" })` and collect unique `from_node_id` values → `project_ids`.
 2) For each `project_id`, gather dependency ids: `get_connected_nodes({ node_id: project_id, direction: "out", connection_type: "DependsOn" })` → `dependency_ids`.
 3) Fetch metadata for each `dependency_id` via `get_node` to retrieve `properties.isComplete` and `modified` (ISO 8601), plus `id` and a short title.
-4) Let `completed = [deps where isComplete == true]`. If `completed` is empty, mark the project as stuck (no recent completion). Otherwise, compute `last_completion = max(modified(completed))` and `daysSince = floor((now - last_completion)/86400000)`; if `daysSince ≥ 14`, mark as stuck.
+4) Let `completed = [deps where isComplete == true]`.
+   - If `completed` is not empty: compute `last_completion = max(modified(completed))`, then `daysSince = floor((now - last_completion)/86400000)`; if `daysSince ≥ 14`, mark as stuck.
+   - If `completed` is empty: fetch the project’s `created` via `get_node({ node_id: project_id })`, set `last_completion = null`, and compute `daysSince = floor((now - created(project))/86400000)`; only if `daysSince ≥ 14`, mark as stuck.
 
 Required output fields (per stuck project):
 - `task_id` (exact id of the project task)
