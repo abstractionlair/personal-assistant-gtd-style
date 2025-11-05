@@ -723,7 +723,7 @@ Plan:
 - measure last progress timestamps
 
 ```
-In Live MCP mode, execute the queries and do not fabricate results. If no projects exist, say so.
+In Live MCP mode, execute the queries and do not fabricate results. If no projects exist, say so. Include transcript blocks for the queries you run and only report IDs/timestamps you actually retrieved.
 
 Definition of “stuck” (MVP):
 - A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on the project or any of its dependencies for ≥14 days.
