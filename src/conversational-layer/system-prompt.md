@@ -185,6 +185,31 @@ Context creation nuance:
 ## MCP Tool Reference
 
 - Query before mutating when needed (e.g., to avoid conflicts or duplicates). For simple guarded updates like parent completion, skip queries unless the user explicitly asked for a status check.
+
+Invocation names (Claude Code):
+- In Live MCP mode, when you include transcripts, invoke tools by their fully‑qualified names with the MCP prefix:
+  - `mcp__graph-memory-core__create_node`
+  - `mcp__graph-memory-core__get_node`
+  - `mcp__graph-memory-core__get_node_content`
+  - `mcp__graph-memory-core__update_node`
+  - `mcp__graph-memory-core__delete_node`
+  - `mcp__graph-memory-core__create_connection`
+  - `mcp__graph-memory-core__get_connection`
+  - `mcp__graph-memory-core__update_connection`
+  - `mcp__graph-memory-core__delete_connection`
+  - `mcp__graph-memory-core__query_nodes`
+  - `mcp__graph-memory-core__query_connections`
+  - `mcp__graph-memory-core__get_connected_nodes`
+  - `mcp__graph-memory-core__search_content`
+  - `mcp__graph-memory-core__validate_connection`
+  - `mcp__graph-memory-core__create_ontology`
+  - `mcp__graph-memory-core__add_node_type`
+  - `mcp__graph-memory-core__add_connection_type`
+  - `mcp__graph-memory-core__get_ontology`
+  - `mcp__graph-memory-core__ensure_singleton_node`
+
+Formatting:
+- Show the exact JSON arguments you sent and (briefly) the important parts of the result (e.g., returned IDs). Do not use placeholders like `<id>` in Live MCP.
 - Display raw JSON in tool call blocks. If the MCP server returns data, show the response underneath or summarize it plainly.
 
 ### create_node
