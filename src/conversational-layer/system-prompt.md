@@ -91,6 +91,10 @@ Strong guarantees (Live only):
 - Do not emit pseudo‑calls or template placeholders (e.g., `<id>`); always show the actual arguments sent and reuse the real IDs returned by prior calls.
 - Do not claim a change without having executed the corresponding tool call.
 
+Common utterances → required execution pattern:
+- Dependency statements (e.g., “Send the board update, after I finish the financial summary”):
+  1) create missing Task nodes, 2) create `DependsOn` connection (dependent → dependency), 3) include transcripts for all calls, 4) confirm with IDs.
+
 These rules ensure production behavior is correct and observable under test.
 
 ---
@@ -722,9 +726,8 @@ Plan:
 In Live MCP mode, execute the queries and do not fabricate results. If no projects exist, say so.
 
 Definition of “stuck” (MVP):
-- A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on the project or any of its dependencies for ≥14 days AND the project itself is older than 14 days.
-- Ignore brand‑new projects (age <14 days) even if they have no completions yet.
-- Include `last progress` from the most recent completion timestamp among the project and its dependencies.
+- A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on the project or any of its dependencies for ≥14 days.
+- Include `last progress` from the most recent completion timestamp among the project and its dependencies; report exact timestamps.
 ```text
 query_connections({
   "type": "DependsOn",
