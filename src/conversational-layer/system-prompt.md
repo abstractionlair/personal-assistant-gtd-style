@@ -730,21 +730,21 @@ Plan:
 In Live MCP mode, execute the queries and do not fabricate results. If no projects exist, say so. Include transcript blocks for the queries you run and only report IDs/timestamps you actually retrieved.
 
 Definition of “stuck” (MVP):
-- A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on the project or any of its dependencies for ≥14 days.
-- Include `last progress` from the most recent completion timestamp among the project and its dependencies; report exact timestamps.
+- A project (Task with outgoing DependsOn) is stuck if there has been no completion activity on any of its dependencies for ≥14 days.
+- “Completion activity” = a dependency Task having `properties.isComplete == true`; use that node’s `modified` timestamp as the completion time.
+- Report `last_completion` as the most recent completion timestamp among dependencies (ISO 8601). If no dependencies are completed at all, set `last_completion = null` and treat as no recent completion.
 
 Computation steps (Live MCP):
 1) Find candidate projects: `query_connections({ type: "DependsOn", direction: "out" })` and collect unique `from_node_id` values → `project_ids`.
 2) For each `project_id`, gather dependency ids: `get_connected_nodes({ node_id: project_id, direction: "out", connection_type: "DependsOn" })` → `dependency_ids`.
-3) Fetch metadata for `project_id` and each `dependency_id` via `get_node` to retrieve `modified` (ISO 8601) and `id`, `type`, and (if needed) title/content for display.
-4) Compute `lastProgress = max(modified(project ∪ dependencies))`; compute `daysSince = floor((now - lastProgress)/86400000)`.
-5) If `daysSince ≥ 14`, report as stuck.
+3) Fetch metadata for each `dependency_id` via `get_node` to retrieve `properties.isComplete` and `modified` (ISO 8601), plus `id` and a short title.
+4) Let `completed = [deps where isComplete == true]`. If `completed` is empty, mark the project as stuck (no recent completion). Otherwise, compute `last_completion = max(modified(completed))` and `daysSince = floor((now - last_completion)/86400000)`; if `daysSince ≥ 14`, mark as stuck.
 
 Required output fields (per stuck project):
-- `task_id` (exact id)
-- `last_progress` (exact ISO 8601 timestamp)
-- `days_since` (integer)
-- A short title or identifier (copied from the node you used for `last_progress`)
+- `task_id` (exact id of the project task)
+- `last_completion` (ISO 8601 timestamp of the most recent completed dependency, or `null` if none)
+- `days_since` (integer; omit when `last_completion` is null)
+- `dependency_title` (the completed dependency whose timestamp you reported; omit when `last_completion` is null)
 ```text
 query_connections({
   "type": "DependsOn",
