@@ -74,17 +74,37 @@ See [GUIDELINES.md](GUIDELINES.md) for project-specific coding standards.
 
 See [GUIDELINES.md](GUIDELINES.md) for testing standards.
 
-### Running Conversational Layer Evaluations
+### Testing the GTD Conversational Layer
 
-This project uses an LLM-as-judge harness for the GTD conversational layer. The harness supports two suites:
+This project has comprehensive testing infrastructure for the GTD conversational layer using LLM-as-judge evaluation with four AI roles (Assistant, User-Proxy, Judge, Interrogator).
 
-- Assistant suite (system-prompt behavior): exercises the production prompt against natural prompts.
-- Judge suite (negative controls): validates the rubric and safety guardrails using canned replies.
+**Quick Start:**
+```bash
+# Run all tests with graph cleanup
+python tests/test_conversational_layer_new.py \
+  --mode real \
+  --test-cases refactored \
+  --clean-graph-between-tests
 
-Commands:
-- All cases: `python tests/test_conversational_layer.py`
-- Assistant-only: `python tests/test_conversational_layer.py --suite assistant`
-- Judge-only: `python tests/test_conversational_layer.py --suite judge`
-- Single case: `python tests/test_conversational_layer.py --case <name>`
+# Run specific category
+python tests/test_conversational_layer_new.py \
+  --mode real \
+  --test-cases refactored \
+  --category Capture \
+  --clean-graph-between-tests
 
-Details and philosophy: see `tests/README.md`.
+# Run with interrogation
+python tests/test_conversational_layer_new.py \
+  --mode real \
+  --test-cases refactored \
+  --interrogate-all \
+  --interrogation-log results.json
+```
+
+**Complete Documentation:**
+See [docs/testing/INDEX.md](docs/testing/INDEX.md) for:
+- Architecture overview (5 layers)
+- All test categories and examples
+- How to add new tests
+- Analyzing results and debugging failures
+- MCP logging and ground-truth data collection
