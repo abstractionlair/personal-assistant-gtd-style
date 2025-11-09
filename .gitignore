@@ -35,3 +35,29 @@ venv/
 env/
 .venv/
 evals/
+
+# Test results and outputs
+*.db
+test_results*.db
+tests/test_results*.db
+test-results/
+*.log
+interrogation*.json
+*_interrogation*.json
+*_output.txt
+run*_*.json
+test*_run*.json
+
+# Test data (ephemeral)
+.data/gtd-memory/_content/
+.data/gtd-memory/_system/registry.json.backup
+.data/gtd-memory/_system/registry.json.pre-cleanup-backup
+
+# Generated reports (temporary)
+TEST_REPORT*.md
+test_report*.md
+
+# Temporary analysis scripts
+analyze_interrogations.py
+generate_test_report.py
+claude_code_grok.json
