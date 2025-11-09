@@ -15,7 +15,7 @@ When adding cases:
 - Use the `category` to hint at critical behaviors (e.g., Delete/Edge cases require confirmation/clarification).
 
 Implementation notes:
-- The judge prompt (in `tests/test_conversational_layer.py`) instructs the model to evaluate conceptually and to ignore formatting.
+- The judge prompt (in `tests/conversational_layer/judge.py`) instructs the model to evaluate conceptually and to ignore formatting.
 - `must_not` (optional, string[]): conceptual anti-criteria that trigger failure if present in the reply (e.g., "delete without explicit confirmation").
 - `expected_pass` (optional, bool): when false, the test expects the judge to fail the reply (used for negative controls).
 - `assistant_override` (optional, string): bypasses the assistant call and feeds a canned reply to the judge (used to validate the judge on negative controls).
@@ -25,10 +25,10 @@ Implementation notes:
 - No-MCP overlay (`tests/fixtures/system-prompt-no-mcp-overlay.md`) is appended when MCP is not available; it directs the assistant to simulate intended operations and provide concise, representative results.
 
 Usage:
-- Run all cases: `python tests/test_conversational_layer.py`
-- Run assistant/system-prompt cases only: `python tests/test_conversational_layer.py --suite assistant`
-- Run judge-only cases (negative controls): `python tests/test_conversational_layer.py --suite judge`
-- Run a specific case: `python tests/test_conversational_layer.py --case query_projects`
+- Run all cases: `python tests/test_conversational_layer_new.py`
+- Run assistant/system-prompt cases only: `python tests/test_conversational_layer_new.py --suite assistant`
+- Run judge-only cases (negative controls): `python tests/test_conversational_layer_new.py --suite judge`
+- Run a specific case: `python tests/test_conversational_layer_new.py --test-name query_projects`
 - Adjust timeouts: `--assistant-timeout 120 --judge-timeout 90` or via env `CLAUDE_TIMEOUT`, `CLAUDE_TIMEOUT_ASSISTANT`, `CLAUDE_TIMEOUT_JUDGE`.
 
 Running without MCP configured:

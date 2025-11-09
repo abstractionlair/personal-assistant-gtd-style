@@ -21,14 +21,9 @@ This document describes the current state of the testing infrastructure for the 
 
 ### What We Execute
 
-**Two primary test runners:**
+**Primary test runner:**
 
-1. **Legacy Runner** (`tests/test_conversational_layer.py`)
-   - **Size**: 1,142 lines
-   - **Architecture**: Monolithic single file
-   - **Location**: `/Volumes/Share 1/Projects/personal-assistant-gtd-style/tests/test_conversational_layer.py`
-
-2. **New Modular Runner** (`tests/test_conversational_layer_new.py`)
+**Modular Runner** (`tests/test_conversational_layer_new.py`)
    - **Size**: 137 lines (+ ~2,900 lines across modules)
    - **Architecture**: Modular with separate components
    - **Location**: `/Volumes/Share 1/Projects/personal-assistant-gtd-style/tests/test_conversational_layer_new.py`
@@ -36,10 +31,8 @@ This document describes the current state of the testing infrastructure for the 
 
 ### Command-Line Interface
 
-#### Legacy Runner
-
 ```bash
-python tests/test_conversational_layer.py [options]
+python tests/test_conversational_layer_new.py [options]
 ```
 
 **Key arguments:**
@@ -62,24 +55,16 @@ python tests/test_conversational_layer.py [options]
 
 ```bash
 # Run all tests with MCP, clean graph between tests
-python tests/test_conversational_layer.py \
-  --mode real \
+python tests/test_conversational_layer_new.py \
   --clean-graph-between-tests
 
 # Run single test with interrogation
-python tests/test_conversational_layer.py \
-  --mode real \
+python tests/test_conversational_layer_new.py \
   --test-name capture_simple_task \
   --interrogate-all
 ```
 
-#### New Modular Runner
-
-```bash
-python tests/test_conversational_layer_new.py [options]
-```
-
-**All legacy arguments PLUS:**
+**Additional arguments:**
 
 | Argument | Values | Default | Purpose |
 |----------|--------|---------|---------|
@@ -132,9 +117,8 @@ python tests/test_conversational_layer_new.py \
 NUM_RUNS = 5                      # Run each test 5 times
 OUTPUT_DIR = Path(__file__).parent.parent
 BASE_CMD = [
-    "python", "test_conversational_layer.py",
+    "python", "test_conversational_layer_new.py",
     "--suite", "assistant",
-    "--mode", "real",
     "--clean-graph-between-tests",
     "--interrogate-all"
 ]
@@ -292,7 +276,7 @@ python tests/test_conversational_layer_new.py \
 4. Passing temp config to Claude via `--mcp-config`
 5. Cleanup after test completes
 
-**Code location**: `test_conversational_layer.py:366-392` (`create_mcp_config_with_logging()`)
+**Code location**: `tests/conversational_layer/fixtures.py` (`create_mcp_config_with_logging()`)
 
 ### 2.3 System Prompts and Test Overlays
 
@@ -407,7 +391,7 @@ export class GraphMemoryMcpServer {
 
 #### Test Framework Integration
 
-**Location**: `tests/test_conversational_layer.py:366-392`
+**Location**: `tests/conversational_layer/fixtures.py`
 
 **Function**: `create_mcp_config_with_logging(base_mcp_path, log_file_path)`
 
@@ -446,7 +430,7 @@ export class GraphMemoryMcpServer {
 
 **When executed**: When `--clean-graph-between-tests` flag is set (after each test completes)
 
-**Location**: `tests/test_conversational_layer.py:752-818`
+**Location**: `tests/conversational_layer/fixtures.py`
 
 **Function**: `clean_graph_state(mcp, timeout_s=60)`
 
@@ -491,7 +475,7 @@ export class GraphMemoryMcpServer {
 
 **Trigger**: Test case contains `graph_setup` field in JSON definition
 
-**Location**: `tests/test_conversational_layer.py:822-918`
+**Location**: `tests/conversational_layer/fixtures.py`
 
 **Function**: `setup_graph_from_fixture(fixture, mcp, timeout_s=60)`
 
@@ -586,9 +570,8 @@ For each test, the initialization sequence is:
    → Proceed to Layer 4 (Execution Flow)
 ```
 
-**Code locations**:
-- Legacy runner: `tests/test_conversational_layer.py:998-1010` (main test loop)
-- New modular runner: `tests/conversational_layer/runner.py:198-210` (test execution)
+**Code location**:
+- Modular runner: `tests/conversational_layer/runner.py:198-210` (test execution)
 
 ## Layer 4: Execution Flow
 
@@ -625,7 +608,7 @@ For each test case, the framework executes:
    └→ Graph cleanup (if configured)
 ```
 
-**Code location**: `tests/test_conversational_layer.py:984-1108` (main test loop)
+**Code location**: `tests/conversational_layer/runner.py` (main test loop)
 
 ---
 

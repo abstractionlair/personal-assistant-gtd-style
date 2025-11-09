@@ -426,7 +426,7 @@ claude \
 
 ## 4. Interrogator (Post-Test Questioner)
 
-**Module**: `tests/test_conversational_layer.py`
+**Module**: `tests/conversational_layer/interrogation.py`
 **Function**: `interrogate_session()`
 
 ### 4.1 Base System Prompt
@@ -443,7 +443,7 @@ Interrogation uses `--resume {session_id}` to continue the assistant's conversat
 
 **When**: Test failed (judge verdict was FAIL or didn't match expected outcome)
 
-**Questions** (test_conversational_layer.py:253-257):
+**Questions** (interrogation.py:23-27):
 ```python
 [
     "Why did you choose that approach to handle the user's request?",
@@ -456,7 +456,7 @@ Interrogation uses `--resume {session_id}` to continue the assistant's conversat
 
 **When**: Test passed (judge verdict matched expected outcome)
 
-**Questions** (test_conversational_layer.py:259-270):
+**Questions** (interrogation.py:31-44):
 ```python
 [
     """
@@ -612,7 +612,7 @@ Graph contains: Existing task "Review vendor contract"
 | User-Proxy LLM Call | `tests/conversational_layer/user_proxy.py` | 590-650 |
 | Judge System Prompt | `tests/conversational_layer/judge.py` | 29-132 |
 | Judge Template | `tests/conversational_layer/judge.py` | 135-148 |
-| Interrogation Questions | `tests/test_conversational_layer.py` | 253-270 |
+| Interrogation Questions | `tests/conversational_layer/interrogation.py` | 23-44 |
 | Live MCP Overlay | `tests/fixtures/system-prompt-live-mcp-overlay.md` | (full file) |
 | Base GTD System Prompt | `src/conversational-layer/system-prompt-full.md` | (full file) |
 
