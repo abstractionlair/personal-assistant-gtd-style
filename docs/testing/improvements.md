@@ -42,13 +42,13 @@ These are the **critical architectural changes** requested by the project owner,
 
 #### Consolidate to Refactored Test Cases Only
 
-**Status**: Ready to implement
-**Current state**: Two test case files exist
+**Status**: ✅ Completed
+**Previous state**: Two test case files existed
 
-**Actions**:
-- Delete `tests/test_cases.json`
-- Keep only `tests/test_cases_refactored.json`
-- Remove CLI shorthand support for old test cases
+**Actions completed**:
+- ✅ Deleted `tests/test_cases.json`
+- ✅ Updated `tests/test_cases_refactored.json` as the default
+- ✅ Removed CLI shorthand support for old test cases
 
 **Benefit**: Single source of truth for test definitions
 
@@ -69,7 +69,6 @@ These are the **critical architectural changes** requested by the project owner,
 ```bash
 python tests/test_conversational_layer_new.py \
   --mode real \
-  --test-cases refactored \
   --runs 5 \
   --delay-between-runs 5 \
   --results-db variance_analysis.db

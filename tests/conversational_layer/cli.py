@@ -94,7 +94,7 @@ Examples:
         "--test-cases",
         dest="test_cases_file",
         default=None,
-        help="Path to test cases JSON file (default: test_cases.json, use 'refactored' for test_cases_refactored.json)."
+        help="Path to test cases JSON file (default: test_cases_refactored.json)."
     )
 
     # Phase 1 improvement: N-run execution with delays
@@ -302,15 +302,12 @@ def args_to_config(args: argparse.Namespace, root: Optional[Path] = None) -> Con
         sys.exit(1)
 
     # Test cases path
-    if args.test_cases_file == "refactored":
-        test_cases_path = root / "tests" / "test_cases_refactored.json"
-        use_refactored = True
-    elif args.test_cases_file:
+    if args.test_cases_file:
         test_cases_path = Path(args.test_cases_file)
-        use_refactored = "refactored" in str(test_cases_path)
     else:
-        test_cases_path = root / "tests" / "test_cases.json"
-        use_refactored = False
+        test_cases_path = root / "tests" / "test_cases_refactored.json"
+
+    use_refactored = "refactored" in str(test_cases_path)
 
     if not test_cases_path.exists():
         print(f"ERROR: Test cases not found at {test_cases_path}", file=sys.stderr)

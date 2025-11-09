@@ -48,7 +48,7 @@ python tests/test_conversational_layer.py [options]
 |----------|--------|---------|---------|
 | `--mode` | `auto`, `sim`, `real` | `auto` | Test mode (sim=no MCP, real=live MCP) |
 | `--suite` | `all`, `assistant`, `judge` | - | Suite selection |
-| `--test-cases` | FILE or `refactored` | - | Test cases file |
+| `--test-cases` | FILE | - | Test cases file (default: test_cases_refactored.json) |
 | `--test-name` | NAME | - | Run single specific test |
 | `--clean-graph-between-tests` | flag | off | Clean graph after each test |
 | `--interrogate-failures` | flag | off | Ask follow-up questions on failures |
@@ -64,14 +64,12 @@ python tests/test_conversational_layer.py [options]
 # Run all tests with MCP, clean graph between tests
 python tests/test_conversational_layer.py \
   --mode real \
-  --test-cases tests/test_cases_refactored.json \
   --clean-graph-between-tests
 
 # Run single test with interrogation
 python tests/test_conversational_layer.py \
   --mode real \
   --test-name capture_simple_task \
-  --test-cases tests/test_cases_refactored.json \
   --interrogate-all
 ```
 
@@ -102,7 +100,6 @@ python tests/test_conversational_layer_new.py [options]
 # Run all tests 5 times with database output
 python tests/test_conversational_layer_new.py \
   --mode real \
-  --test-cases refactored \
   --runs 5 \
   --interrogate-all \
   --clean-graph-between-tests \
@@ -138,7 +135,6 @@ BASE_CMD = [
     "python", "test_conversational_layer.py",
     "--suite", "assistant",
     "--mode", "real",
-    "--test-cases", "refactored",
     "--clean-graph-between-tests",
     "--interrogate-all"
 ]
@@ -188,14 +184,14 @@ Example active runs:
 ```bash
 # Full suite, 5 runs, database output
 python tests/test_conversational_layer_new.py \
-  --mode real --test-cases refactored --runs 5 \
+  --mode real --runs 5 \
   --interrogate-all --clean-graph-between-tests \
   --results-db tests/test_results_5runs_fixed.db \
   --log-level INFO
-  
+
 # Capture category only
 python tests/test_conversational_layer_new.py \
-  --mode real --test-cases refactored \
+  --mode real \
   --category Capture --log-level INFO \
   --clean-graph-between-tests
 ```
@@ -206,11 +202,11 @@ python tests/test_conversational_layer_new.py \
 
 ### 2.1 Test Case Files
 
-#### Primary Test Cases: `tests/test_cases.json`
+#### Test Cases: `tests/test_cases_refactored.json`
 
-**Location**: `/Volumes/Share 1/Projects/personal-assistant-gtd-style/tests/test_cases.json`
-**Size**: 380 lines
-**Count**: 30 test cases
+**Location**: `/Volumes/Share 1/Projects/personal-assistant-gtd-style/tests/test_cases_refactored.json`
+**Size**: 470 lines (current standard)
+**Count**: 30+ test cases
 
 **Structure**:
 ```json
@@ -265,15 +261,6 @@ python tests/test_conversational_layer_new.py \
 - `update_mark_complete`: Mark task as done
 - `delete_with_dependency_warning`: Warn before cascade delete
 - `edge_ambiguous_reference`: Handle "mark the proposal done" (which one?)
-
-#### Refactored Test Cases: `tests/test_cases_refactored.json`
-
-**Location**: `/Volumes/Share 1/Projects/personal-assistant-gtd-style/tests/test_cases_refactored.json`
-**Status**: Git status shows as untracked (newer iteration)
-**Relationship**: Appears to be updated version of test_cases.json
-**Usage**: Most active test runs use `--test-cases refactored` shorthand
-
-**Shorthand support**: New runner accepts `--test-cases refactored` which maps to this file
 
 ### 2.2 MCP Configuration Files
 
