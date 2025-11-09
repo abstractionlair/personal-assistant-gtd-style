@@ -8,6 +8,8 @@
 
 import type { MemoryGraph } from './memoryGraph.js';
 import { z } from 'zod';
+import * as fs from 'fs';
+import * as path from 'path';
 import type {
   AddConnectionTypeRequest,
   AddNodeTypeRequest,
@@ -168,7 +170,61 @@ export interface ToolRegistrar {
  * MCP server wrapper exposing the 19 graph memory operations.
  */
 export class GraphMemoryMcpServer {
-  constructor(private readonly graph: MemoryGraph) {}
+  private logFile: string | null = null;
+  private logStream: fs.WriteStream | null = null;
+
+  constructor(private readonly graph: MemoryGraph) {
+    // Initialize logging if MCP_CALL_LOG environment variable is set
+    const logPath = process.env.MCP_CALL_LOG;
+    if (logPath) {
+      this.logFile = logPath;
+      try {
+        // Ensure directory exists
+        const dir = path.dirname(logPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        // Open log file in append mode
+        this.logStream = fs.createWriteStream(logPath, { flags: 'a' });
+        this.logToolCall('SERVER_START', {});
+      } catch (error) {
+        console.error(`Failed to initialize MCP call logging: ${error}`);
+      }
+    }
+  }
+
+  private logToolCall(toolName: string, input: any, result?: any, error?: any): void {
+    if (!this.logStream) return;
+
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      tool: toolName,
+      input: input,
+      ...(result !== undefined && { result }),
+      ...(error !== undefined && { error: String(error) })
+    };
+
+    this.logStream.write(JSON.stringify(logEntry) + '\n');
+  }
+
+  /**
+   * Wrap a handler function with logging.
+   */
+  private wrapHandlerWithLogging<TInput, TResult>(
+    toolName: string,
+    handler: (input: TInput) => Promise<TResult>
+  ): (input: TInput) => Promise<TResult> {
+    return async (input: TInput) => {
+      try {
+        const result = await handler(input);
+        this.logToolCall(toolName, input, result);
+        return result;
+      } catch (error) {
+        this.logToolCall(toolName, input, undefined, error);
+        throw error;
+      }
+    };
+  }
 
   /**
    * Register every tool with the provided registrar.
@@ -204,15 +260,15 @@ export class GraphMemoryMcpServer {
   private createCreateNodeTool(): ToolDefinition<CreateNodeRequest, CreateNodeResult> {
     return {
       name: 'create_node',
-      description: 'Create a new typed node with content and optional properties.',
+      description: 'Create a GTD Task, Context, State, or UNSPECIFIED node in the graph. Use for capturing tasks ("Call dentist"), defining contexts (@office, @phone), or tracking states. This is how you persist GTD items.',
       inputSchema: createNodeInputShape,
-      handler: async (input: CreateNodeRequest) => {
+      handler: this.wrapHandlerWithLogging('create_node', async (input: CreateNodeRequest) => {
         try {
           return await this.graph.createNode(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -221,13 +277,13 @@ export class GraphMemoryMcpServer {
       name: 'get_node',
       description: 'Retrieve metadata for a node without loading its content.',
       inputSchema: nodeIdShape,
-      handler: async (input: GetNodeRequest) => {
+      handler: this.wrapHandlerWithLogging('get_node', async (input: GetNodeRequest) => {
         try {
           return await this.graph.getNode(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -236,28 +292,28 @@ export class GraphMemoryMcpServer {
       name: 'get_node_content',
       description: 'Read the stored content for the specified node.',
       inputSchema: nodeIdShape,
-      handler: async (input: GetNodeContentRequest) => {
+      handler: this.wrapHandlerWithLogging('get_node_content', async (input: GetNodeContentRequest) => {
         try {
           return await this.graph.getNodeContent(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
   private createUpdateNodeTool(): ToolDefinition<UpdateNodeRequest, void> {
     return {
       name: 'update_node',
-      description: 'Update node properties and/or content.',
+      description: 'Update a GTD Task, Context, or State. Use when user marks tasks complete (isComplete: true), adds notes, changes context availability (isAvailable: true), or updates properties. ALWAYS search for existing node first, never create new.',
       inputSchema: updateNodeInputShape,
-      handler: async (input: UpdateNodeRequest) => {
+      handler: this.wrapHandlerWithLogging('update_node', async (input: UpdateNodeRequest) => {
         try {
           await this.graph.updateNode(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -266,28 +322,28 @@ export class GraphMemoryMcpServer {
       name: 'delete_node',
       description: 'Delete a node and cascade delete its connections.',
       inputSchema: nodeIdShape,
-      handler: async (input: DeleteNodeRequest) => {
+      handler: this.wrapHandlerWithLogging('delete_node', async (input: DeleteNodeRequest) => {
         try {
           await this.graph.deleteNode(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
   private createCreateConnectionTool(): ToolDefinition<CreateConnectionRequest, CreateConnectionResult> {
     return {
       name: 'create_connection',
-      description: 'Create a new typed connection between two nodes.',
+      description: 'Create a DependsOn connection in the GTD graph. Use to link Task→Task (sequential dependency), Task→Context (@office requirement), Task→State (condition), or Task→UNSPECIFIED (undefined next step). Direction: from depends on to.',
       inputSchema: createConnectionInputShape,
-      handler: async (input: CreateConnectionRequest) => {
+      handler: this.wrapHandlerWithLogging('create_connection', async (input: CreateConnectionRequest) => {
         try {
           return await this.graph.createConnection(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -296,13 +352,13 @@ export class GraphMemoryMcpServer {
       name: 'get_connection',
       description: 'Retrieve metadata for a connection.',
       inputSchema: connectionIdShape,
-      handler: async (input: GetConnectionRequest) => {
+      handler: this.wrapHandlerWithLogging('get_connection', async (input: GetConnectionRequest) => {
         try {
           return await this.graph.getConnection(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -311,13 +367,13 @@ export class GraphMemoryMcpServer {
       name: 'update_connection',
       description: 'Update connection properties and optional content.',
       inputSchema: updateConnectionInputShape,
-      handler: async (input: UpdateConnectionRequest) => {
+      handler: this.wrapHandlerWithLogging('update_connection', async (input: UpdateConnectionRequest) => {
         try {
           await this.graph.updateConnection(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -326,73 +382,73 @@ export class GraphMemoryMcpServer {
       name: 'delete_connection',
       description: 'Delete a connection without affecting nodes.',
       inputSchema: connectionIdShape,
-      handler: async (input: DeleteConnectionRequest) => {
+      handler: this.wrapHandlerWithLogging('delete_connection', async (input: DeleteConnectionRequest) => {
         try {
           await this.graph.deleteConnection(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
   private createQueryNodesTool(): ToolDefinition<QueryNodesRequest, QueryNodesResult> {
     return {
       name: 'query_nodes',
-      description: 'Query nodes by type and property filters (AND semantics).',
+      description: 'Query the GTD system for Tasks, Contexts, or States. CRITICAL: Use this BEFORE responding to check what exists. Examples: query_nodes({type:"Task",properties:{isComplete:false}}) for incomplete tasks, query_nodes({type:"Context"}) for all contexts. Never assume empty system without querying.',
       inputSchema: queryNodesInputShape,
-      handler: async (input: QueryNodesRequest) => {
+      handler: this.wrapHandlerWithLogging('query_nodes', async (input: QueryNodesRequest) => {
         try {
           return await this.graph.queryNodes(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
   private createQueryConnectionsTool(): ToolDefinition<QueryConnectionsRequest, QueryConnectionsResult> {
     return {
       name: 'query_connections',
-      description: 'Query connections by endpoints, type, and properties.',
+      description: 'Query DependsOn connections in the GTD graph. Use query_connections({from_node_id: task_id}) to check if a Task is a Project (has outgoing dependencies). Use to find dependency relationships between Tasks.',
       inputSchema: queryConnectionsInputShape,
-      handler: async (input: QueryConnectionsRequest) => {
+      handler: this.wrapHandlerWithLogging('query_connections', async (input: QueryConnectionsRequest) => {
         try {
           return await this.graph.queryConnections(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
   private createGetConnectedNodesTool(): ToolDefinition<GetConnectedNodesRequest, GetConnectedNodesResult> {
     return {
       name: 'get_connected_nodes',
-      description: 'Traverse connections to retrieve adjacent node identifiers.',
+      description: 'Get nodes connected to a Task via DependsOn connections. Use direction:"out" to get what this Task depends on (blockers). Use direction:"in" to get what depends on this Task (dependents). Essential for determining Next Actions.',
       inputSchema: getConnectedNodesInputShape,
-      handler: async (input: GetConnectedNodesRequest) => {
+      handler: this.wrapHandlerWithLogging('get_connected_nodes', async (input: GetConnectedNodesRequest) => {
         try {
           return await this.graph.getConnectedNodes(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
   private createSearchContentTool(): ToolDefinition<SearchContentRequest, SearchContentResult> {
     return {
       name: 'search_content',
-      description: 'Search node content for substring matches (case-insensitive).',
+      description: 'Search GTD items by text content (case-insensitive). CRITICAL: Use this to find tasks before updating/deleting ("board presentation", "vendor contract"). Also use to check for duplicates before creating. This is your primary search tool.',
       inputSchema: searchContentInputShape,
-      handler: async (input: SearchContentRequest) => {
+      handler: this.wrapHandlerWithLogging('search_content', async (input: SearchContentRequest) => {
         try {
           return await this.graph.searchContent(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -401,13 +457,13 @@ export class GraphMemoryMcpServer {
       name: 'validate_connection',
       description: 'Validate whether a connection type is allowed between node types.',
       inputSchema: validateConnectionInputShape,
-      handler: async (input: ValidateConnectionRequest) => {
+      handler: this.wrapHandlerWithLogging('validate_connection', async (input: ValidateConnectionRequest) => {
         try {
           return await this.graph.validateConnection(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -416,13 +472,13 @@ export class GraphMemoryMcpServer {
       name: 'create_ontology',
       description: 'Initialize the ontology with initial node and connection types.',
       inputSchema: createOntologyInputShape,
-      handler: async (input: CreateOntologyRequest) => {
+      handler: this.wrapHandlerWithLogging('create_ontology', async (input: CreateOntologyRequest) => {
         try {
           await this.graph.createOntology(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -431,13 +487,13 @@ export class GraphMemoryMcpServer {
       name: 'add_node_type',
       description: 'Append a new node type to the ontology.',
       inputSchema: addNodeTypeInputShape,
-      handler: async (input: AddNodeTypeRequest) => {
+      handler: this.wrapHandlerWithLogging('add_node_type', async (input: AddNodeTypeRequest) => {
         try {
           await this.graph.addNodeType(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -446,13 +502,13 @@ export class GraphMemoryMcpServer {
       name: 'add_connection_type',
       description: 'Append a new connection type to the ontology.',
       inputSchema: addConnectionTypeInputShape,
-      handler: async (input: AddConnectionTypeRequest) => {
+      handler: this.wrapHandlerWithLogging('add_connection_type', async (input: AddConnectionTypeRequest) => {
         try {
           await this.graph.addConnectionType(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -461,13 +517,13 @@ export class GraphMemoryMcpServer {
       name: 'get_ontology',
       description: 'Retrieve the current ontology definition.',
       inputSchema: emptyObjectShape,
-      handler: async (_input: Record<string, never>) => {
+      handler: this.wrapHandlerWithLogging('get_ontology', async (_input: Record<string, never>) => {
         try {
           return await this.graph.getOntology();
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
@@ -476,13 +532,13 @@ export class GraphMemoryMcpServer {
       name: 'ensure_singleton_node',
       description: 'Get or create the canonical singleton node for a type.',
       inputSchema: ensureSingletonNodeInputShape,
-      handler: async (input: EnsureSingletonNodeRequest) => {
+      handler: this.wrapHandlerWithLogging('ensure_singleton_node', async (input: EnsureSingletonNodeRequest) => {
         try {
           return await this.graph.ensureSingletonNode(input);
         } catch (error) {
           throw this.mapError(error);
         }
-      }
+      })
     };
   }
 
