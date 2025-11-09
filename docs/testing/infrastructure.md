@@ -46,7 +46,7 @@ python tests/test_conversational_layer.py [options]
 
 | Argument | Values | Default | Purpose |
 |----------|--------|---------|---------|
-| `--mode` | `auto`, `sim`, `real` | `auto` | Test mode (sim=no MCP, real=live MCP) |
+| `--mode` | `real` | `real` | Test mode (always Live MCP) |
 | `--suite` | `all`, `assistant`, `judge` | - | Suite selection |
 | `--test-cases` | FILE | - | Test cases file (default: test_cases_refactored.json) |
 | `--test-name` | NAME | - | Run single specific test |
@@ -344,40 +344,13 @@ Communication
 
 **Effect**: Assistant executes actual MCP operations and shows transcripts
 
-##### 3. Simulation Overlay (`--mode sim`)
+#### Mode Selection
 
-**Location**: `tests/fixtures/system-prompt-no-mcp-overlay.md`
-**When used**: `--mode sim` (no MCP server)
+Tests now **always run in Live MCP mode** (`--mode real`). The simulation mode has been removed.
 
-**Key guidance**:
-```markdown
-Environment
-- No MCP server available
-- Describe operations you would perform
-
-Execution
-- Describe the plan and operations
-- Provide representative result set
-- Label as simulated: "Simulated: Captured task..."
-- Use descriptive placeholders, not concrete IDs
-
-Example format:
-  Simulated: Captured task "Call dentist" (task_abc123)
-  Simulated: Created @office context (ctx_def456)
-```
-
-**Effect**: Assistant simulates operations without actual MCP calls
-
-#### Mode Selection Logic
-
-**`--mode auto`** (default):
-1. Check if MCP config exists and is valid
-2. If yes → use `real` mode
-3. If no → use `sim` mode
-
-**`--mode real`**: Force Live MCP mode (fails if MCP unavailable)
-
-**`--mode sim`**: Force simulation mode (no MCP even if available)
+**Requirements**:
+- MCP config file must exist at `tests/mcp-config.json` (or set via `MCP_CONFIG_PATH`)
+- Test will fail if MCP server is not accessible
 
 ## Layer 3: Setup and Initialization
 
@@ -1326,7 +1299,7 @@ Failures:
 CREATE TABLE runs (
     run_id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL,              -- ISO 8601 format
-    mode TEXT NOT NULL,                   -- "real" or "sim"
+    mode TEXT NOT NULL,                   -- Always "real" (Live MCP)
     runs_count INTEGER NOT NULL,          -- Number of run iterations (--runs N)
     test_count INTEGER NOT NULL,          -- Total tests executed
     passed_count INTEGER NOT NULL,        -- Tests matching expectations

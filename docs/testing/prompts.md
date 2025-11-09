@@ -68,13 +68,7 @@ Communication
 - Clear user-first confirmations of outcomes
 ```
 
-#### 1.2.2 Simulation Overlay (--mode sim) [DEPRECATED]
-
-**File**: `tests/fixtures/system-prompt-no-mcp-overlay.md`
-**When**: `--mode sim` (no MCP server)
-**Status**: Marked for removal (see improvements.md #2.2)
-
-**Note**: Instructs assistant to describe operations instead of executing them. To be eliminated.
+**Note**: Simulation overlay (`system-prompt-no-mcp-overlay.md`) has been removed. Tests always run in Live MCP mode.
 
 ### 1.3 Model Configuration
 

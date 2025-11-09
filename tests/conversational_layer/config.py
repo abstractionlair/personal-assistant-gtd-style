@@ -33,7 +33,7 @@ class Config:
         cleanup_timeout: Timeout for graph cleanup (seconds)
 
         # Features
-        mode: Test mode ('sim' or 'real')
+        mode: Test mode (always 'real' - Live MCP)
         clean_between_tests: Whether to clean graph between tests
         interrogate_failures: Whether to interrogate failed tests
         interrogate_passes: Whether to interrogate passed tests
@@ -73,7 +73,7 @@ class Config:
     cleanup_timeout: float = 120.0
 
     # Features
-    mode: str = "sim"  # 'sim' or 'real'
+    mode: str = "real"  # Always 'real' (Live MCP)
     clean_between_tests: bool = False
     interrogate_failures: bool = False
     interrogate_passes: bool = False
@@ -103,12 +103,12 @@ class Config:
             ValueError: If configuration is invalid
         """
         # Validate mode
-        if self.mode not in ("sim", "real"):
-            raise ValueError(f"Invalid mode: {self.mode}. Must be 'sim' or 'real'")
+        if self.mode != "real":
+            raise ValueError(f"Invalid mode: {self.mode}. Must be 'real'")
 
-        # Validate MCP config for real mode
-        if self.mode == "real" and self.mcp_config_path is None:
-            raise ValueError("MCP config path required for 'real' mode")
+        # Validate MCP config (required for real mode)
+        if self.mcp_config_path is None:
+            raise ValueError("MCP config path is required")
 
         # Validate suite
         if self.suite not in ("all", "assistant", "judge"):
@@ -138,16 +138,16 @@ class Config:
             raise ValueError(f"MCP config not found: {self.mcp_config_path}")
 
     def is_simulation_mode(self) -> bool:
-        """Check if running in simulation mode."""
-        return self.mode == "sim"
+        """Check if running in simulation mode (always False now)."""
+        return False
 
     def is_live_mcp_mode(self) -> bool:
-        """Check if running in live MCP mode."""
-        return self.mode == "real"
+        """Check if running in live MCP mode (always True now)."""
+        return True
 
     def should_clean_graph(self) -> bool:
-        """Check if graph cleanup is enabled and appropriate for mode."""
-        return self.clean_between_tests and self.is_live_mcp_mode()
+        """Check if graph cleanup is enabled."""
+        return self.clean_between_tests
 
     def should_interrogate(self, passed: bool) -> bool:
         """Check if interrogation is enabled for this result.
@@ -178,15 +178,10 @@ class Config:
         if test_overlay.exists():
             overlays.append(test_overlay)
 
-        # Add mode-specific overlay
-        if self.is_live_mcp_mode():
-            mcp_overlay = fixtures_dir / "system-prompt-live-mcp-overlay.md"
-            if mcp_overlay.exists():
-                overlays.append(mcp_overlay)
-        else:
-            no_mcp_overlay = fixtures_dir / "system-prompt-no-mcp-overlay.md"
-            if no_mcp_overlay.exists():
-                overlays.append(no_mcp_overlay)
+        # Add Live MCP overlay
+        mcp_overlay = fixtures_dir / "system-prompt-live-mcp-overlay.md"
+        if mcp_overlay.exists():
+            overlays.append(mcp_overlay)
 
         return overlays
 
@@ -249,8 +244,8 @@ class Config:
 DEFAULT_CONFIG = Config(
     system_prompt_path=Path("src/conversational-layer/system-prompt-full.md"),
     test_cases_path=Path("tests/test_cases_refactored.json"),
-    mcp_config_path=None,  # Simulation mode by default
-    mode="sim",
+    mcp_config_path=Path("tests/mcp-config.json"),  # Live MCP mode
+    mode="real",
     runs=1,
     inter_run_delay=10.0,
     max_retries=3,

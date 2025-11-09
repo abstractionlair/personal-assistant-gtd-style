@@ -29,14 +29,15 @@ These are the **critical architectural changes** requested by the project owner,
 
 #### Eliminate Simulation Mode Completely
 
-**Status**: Ready to implement
-**Current state**: `--mode sim` still supported
+**Status**: ✅ Completed
+**Previous state**: Tests supported `--mode sim` (no MCP), `--mode real` (live MCP), `--mode auto`
 
-**Actions**:
-- Remove all `--mode sim` support
-- Delete `tests/fixtures/system-prompt-no-mcp-overlay.md`
-- **Verify sim-mode instruction contamination**: When running `--mode real`, ensure the assistant does not even see sim-mode instructions (not just that it ignores them)
-- Remove simulation logic from all runners and documentation
+**Actions completed**:
+- ✅ Removed all `--mode sim` support from CLI
+- ✅ Deleted `tests/fixtures/system-prompt-no-mcp-overlay.md`
+- ✅ Updated config.py to only accept "real" mode
+- ✅ Updated fixtures.py to remove sim mode checks
+- ✅ Updated documentation to remove sim-mode references
 
 **Benefit**: Tests only validate real MCP operations; no risk of sim-mode artifacts
 

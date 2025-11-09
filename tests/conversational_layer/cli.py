@@ -26,20 +26,20 @@ def parse_args(args: Optional[list] = None) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Run all tests once in simulation mode
-  %(prog)s --mode sim
+  # Run all tests with Live MCP
+  %(prog)s --mode real
 
   # Run 5 times with delays between runs
-  %(prog)s --mode sim --runs 5 --inter-run-delay 10
+  %(prog)s --runs 5 --inter-run-delay 10
 
   # Run specific category with Live MCP
-  %(prog)s --mode real --category Capture --clean-graph-between-tests
+  %(prog)s --category Capture --clean-graph-between-tests
 
   # Interrogate failures and save to JSON
-  %(prog)s --mode sim --interrogate-failures --interrogation-log results.json
+  %(prog)s --interrogate-failures --interrogation-log results.json
 
   # Run single test
-  %(prog)s --mode sim --test-name capture_simple_task
+  %(prog)s --test-name capture_simple_task
 """
     )
 
@@ -84,9 +84,9 @@ Examples:
     parser.add_argument(
         "--mode",
         dest="mode",
-        choices=["auto", "sim", "real"],
-        default="auto",
-        help="Simulate without MCP (sim), require MCP (real), or auto-detect (auto)."
+        choices=["real"],
+        default="real",
+        help="Run tests with Live MCP (always real mode)."
     )
 
     # Test files
@@ -271,29 +271,20 @@ def args_to_config(args: argparse.Namespace, root: Optional[Path] = None) -> Con
     if root is None:
         root = Path(__file__).parent.parent.parent
 
-    # Determine mode
-    mode = args.mode
-    if mode == "auto":
-        # Auto-detect based on MCP config availability
-        mcp_default = root / "tests" / "mcp-config.json"
-        mcp_override = os.environ.get("MCP_CONFIG_PATH")
-        mcp_candidate = Path(mcp_override).expanduser() if mcp_override else mcp_default
-        mode = "real" if mcp_candidate.exists() else "sim"
+    # Mode is always "real" (Live MCP)
+    mode = "real"
 
-    # MCP config path
-    if mode == "real":
-        mcp_override = os.environ.get("MCP_CONFIG_PATH")
-        if mcp_override:
-            mcp_config_path = Path(mcp_override).expanduser()
-        else:
-            mcp_config_path = root / "tests" / "mcp-config.json"
-
-        if not mcp_config_path.exists():
-            print(f"ERROR: MCP config not found at {mcp_config_path}", file=sys.stderr)
-            print("       Set MCP_CONFIG_PATH or run with --mode sim", file=sys.stderr)
-            sys.exit(1)
+    # MCP config path (required for real mode)
+    mcp_override = os.environ.get("MCP_CONFIG_PATH")
+    if mcp_override:
+        mcp_config_path = Path(mcp_override).expanduser()
     else:
-        mcp_config_path = None
+        mcp_config_path = root / "tests" / "mcp-config.json"
+
+    if not mcp_config_path.exists():
+        print(f"ERROR: MCP config not found at {mcp_config_path}", file=sys.stderr)
+        print("       Set MCP_CONFIG_PATH environment variable to specify location", file=sys.stderr)
+        sys.exit(1)
 
     # System prompt path
     system_prompt_path = root / "src" / "conversational-layer" / "system-prompt-full.md"

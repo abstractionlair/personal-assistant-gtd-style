@@ -68,15 +68,15 @@ def clean_graph_state(config: Config) -> bool:
         True if cleanup succeeded, False otherwise
 
     Notes:
-        - Only runs in live MCP mode (not simulation)
+        - Requires MCP config path to be set
         - Deletes all nodes (connections cascade automatically)
         - Logs warnings on failure but doesn't raise exceptions
     """
     logger = get_logger()
 
     if not config.mcp_config_path:
-        logger.debug("Skipping graph cleanup (simulation mode)")
-        return True  # No cleanup needed in simulation mode
+        logger.error("MCP config path is required for graph cleanup")
+        return False  # Cannot clean without MCP config
 
     logger.info("Cleaning graph state...")
 
@@ -182,7 +182,7 @@ def setup_graph_from_fixture(
         return True  # No setup needed
 
     if not config.mcp_config_path:
-        logger.warning("Cannot setup fixtures in simulation mode")
+        logger.error("MCP config path is required for fixture setup")
         return False
 
     # Convert fixture to natural language setup instructions

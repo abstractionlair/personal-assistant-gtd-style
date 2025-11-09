@@ -142,13 +142,15 @@ Complete documentation of all prompts used in testing:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Test Execution Modes
+### Test Execution Mode
 
-| Mode | MCP Server | Purpose | Speed |
-|------|------------|---------|-------|
-| `sim` | No (fixtures) | Fast development, schema validation | ⚡ Fast |
-| `real` | Yes (live) | Integration testing, ground truth | 🐢 Slow |
-| `auto` | Attempts real, falls back to sim | CI/CD flexibility | 🔄 Variable |
+Tests always run in **Live MCP mode** (`--mode real`):
+
+| Mode | MCP Server | Purpose |
+|------|------------|---------|
+| `real` | Yes (live) | Integration testing with real MCP operations |
+
+**Note**: Simulation mode has been removed to ensure tests validate actual MCP behavior.
 
 ### Four AI Roles
 

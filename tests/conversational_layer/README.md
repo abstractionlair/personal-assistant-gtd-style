@@ -53,21 +53,20 @@ No additional dependencies beyond the base project requirements.
 
 ### Basic Usage
 
-```bash
-# Run all tests once in simulation mode
-python tests/test_conversational_layer_new.py --mode sim
+**Note**: Tests always run in Live MCP mode (requires MCP server).
 
-# Run with Live MCP (requires MCP server)
-python tests/test_conversational_layer_new.py --mode real
+```bash
+# Run all tests once
+python tests/test_conversational_layer_new.py
 
 # Run specific category
-python tests/test_conversational_layer_new.py --mode sim --category Edge
+python tests/test_conversational_layer_new.py --category Edge
 
 # Run N times with delays
-python tests/test_conversational_layer_new.py --mode sim --runs 5 --inter-run-delay 10
+python tests/test_conversational_layer_new.py --runs 5 --inter-run-delay 10
 
-# Clean graph between tests (Live MCP only)
-python tests/test_conversational_layer_new.py --mode real --clean-graph-between-tests
+# Clean graph between tests
+python tests/test_conversational_layer_new.py --clean-graph-between-tests
 ```
 
 ### Interrogation Mode
@@ -76,10 +75,10 @@ Ask the assistant follow-up questions to understand failures and evaluate instru
 
 ```bash
 # Interrogate failures only
-python tests/test_conversational_layer_new.py --mode sim --interrogate-failures
+python tests/test_conversational_layer_new.py --interrogate-failures
 
 # Interrogate both passes and failures
-python tests/test_conversational_layer_new.py --mode sim --interrogate-all \
+python tests/test_conversational_layer_new.py --interrogate-all \
   --interrogation-log results.json
 ```
 
@@ -138,7 +137,7 @@ export PRINT_ASSISTANT_ON_FAIL=1
 - `--cleanup-timeout SECONDS` - Graph cleanup timeout (default: 120)
 
 #### Features
-- `--mode {auto,sim,real}` - Test mode (auto-detect, simulation, or Live MCP)
+- `--mode real` - Test mode (always Live MCP)
 - `--clean-graph-between-tests` - Delete all graph nodes between tests
 - `--interrogate-failures` - Ask follow-up questions on failures
 - `--interrogate-passes` - Survey assistant on successes
@@ -307,7 +306,7 @@ Extract uncertainty mentions from answers:
 **runs**: Test run metadata
 - `run_id`: Primary key
 - `timestamp`: ISO 8601 timestamp
-- `mode`: sim or real
+- `mode`: Always "real" (Live MCP)
 - `runs_count`: Number of runs executed
 - `test_count`: Total tests run
 - `passed_count`: Tests that passed
@@ -372,7 +371,7 @@ Detect inconsistent tests with multiple runs:
 
 ```bash
 # Run 10 times
-python tests/test_conversational_layer_new.py --mode sim --runs 10
+python tests/test_conversational_layer_new.py --runs 10
 
 # Query for flaky tests
 python tests/test_conversational_layer_new.py --query flaky

@@ -44,19 +44,9 @@ Summary output:
 - Reports how many cases matched expectations and shows judge PASS/FAIL tallies separately.
 
 Modes:
-- `--mode auto` (default): auto-detects MCP. If none, runs in Simulation mode by appending a No-MCP overlay that instructs the assistant to simulate intended graph operations, provide concise representative results, and confirm non-destructive outcomes without asking for permissions.
-- `--mode sim`: forces Simulation mode, even if MCP is available.
-- `--mode real`: requires MCP; exits if none found. In real mode, the assistant may perform actual tool calls; permission prompts are not injected by the harness.
+- Tests always run in **Live MCP mode** (`--mode real`): Requires MCP server; assistant performs actual tool calls.
 
-Note: The guidance “do not ask for permissions” is specific to Simulation mode via the No-MCP overlay. It does not alter production behavior or the base system prompt.
-
-Judge context:
-- The judge prompt includes the current mode (Simulation vs Live MCP) and adjusts evaluation accordingly:
-  - Simulation: do not penalize lack of real execution; accept simulated confirmations and representative results if they satisfy intent and safety.
-  - Live MCP: expect real operations when appropriate; still judge based on outcomes and semantics, not formatting.
-
-Simulation phrasing:
-- Use a clear “Simulated:” prefix when confirming non-destructive actions, e.g., “Simulated: Captured task …” / “Simulated: Linked task to @phone context.” This helps avoid the judge interpreting confirmations as fabrications in Simulation mode.
+Note: Simulation mode has been removed to ensure tests validate real MCP operations.
 
 API syntax in Simulation:
 - The judge ignores low-level tool-call syntax and parameter names in Simulation mode. Focus on conceptual flow and outcomes; pseudo-calls are optional and not graded for exactness.
