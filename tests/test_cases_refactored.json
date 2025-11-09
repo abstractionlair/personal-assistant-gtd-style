@@ -1,0 +1,471 @@
+[
+  {
+    "name": "capture_simple_task",
+    "category": "Capture",
+    "prompt": "I need to call the dentist tomorrow to schedule a cleaning.",
+    "expected_behavior": "Creates incomplete task, confirms to user",
+    "judge_scenario": "User wants to capture a simple task"
+  },
+  {
+    "name": "capture_task_with_context",
+    "category": "Capture",
+    "prompt": "Log a reminder to print the quarterly packets when I'm at the office.",
+    "expected_behavior": "Creates task, creates/reuses @office context, links them",
+    "judge_scenario": "User wants task associated with specific location"
+  },
+  {
+    "name": "capture_task_with_dependency",
+    "category": "Capture",
+    "prompt": "I need to send the board update, but only after I finish the financial summary.",
+    "expected_behavior": "Creates both tasks with correct dependency direction",
+    "judge_scenario": "User describes sequential work dependency"
+  },
+  {
+    "name": "capture_task_with_unspecified",
+    "category": "Capture",
+    "prompt": "I'm not sure what the next step is for the marketing launch, but something needs to happen.",
+    "expected_behavior": "Creates task linked to UNSPECIFIED, explains blockage",
+    "judge_scenario": "User mentions vague work without clear decomposition"
+  },
+  {
+    "name": "capture_duplicate_detection",
+    "category": "Capture",
+    "prompt": "Add a task to finalize the vendor contract.",
+    "expected_behavior": "Searches graph, finds similar task 'Review vendor contract', asks if same or different, then acts on user response",
+    "judge_scenario": "User mentions task similar to existing one - assistant should search then ask",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Review vendor contract",
+          "isComplete": false
+        }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 3,
+      "validate_mcp_before_ask": true,
+      "require_search_first": true,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Create a new task for finalizing the vendor contract (separate from the existing review task)",
+      "success_criteria": [
+        "New task created with content about 'finalizing' or 'finalize' the vendor contract",
+        "Task is separate from the existing 'Review vendor contract' task"
+      ]
+    }
+  },
+  {
+    "name": "capture_project_with_subtasks",
+    "category": "Capture",
+    "prompt": "I need to prepare the investor packet: gather metrics, draft the narrative, and polish the slides.",
+    "expected_behavior": "Creates parent and child tasks with correct dependencies",
+    "judge_scenario": "User describes multi-step project"
+  },
+  {
+    "name": "capture_delegated_task",
+    "category": "Capture",
+    "prompt": "Log that Jane is handling the new logo design.",
+    "expected_behavior": "Creates delegated task with responsibleParty=Jane",
+    "judge_scenario": "User delegates task to external party"
+  },
+  {
+    "name": "capture_manual_state",
+    "category": "Capture",
+    "prompt": "Track that the conference room projector is working right now.",
+    "expected_behavior": "Creates MANUAL state set to true, explains tracking",
+    "judge_scenario": "User reports environmental condition"
+  },
+  {
+    "name": "capture_infer_obvious_context",
+    "category": "Capture",
+    "prompt": "Add a reminder to call the dentist.",
+    "expected_behavior": "Creates task, infers @phone context, links them",
+    "judge_scenario": "User mentions task with obvious context implication"
+  },
+  {
+    "name": "query_next_actions",
+    "category": "Query",
+    "prompt": "What should I work on next?",
+    "expected_behavior": "Returns actionable tasks only",
+    "judge_scenario": "User asks what to work on"
+  },
+  {
+    "name": "query_projects",
+    "category": "Query",
+    "prompt": "Show me my active projects.",
+    "expected_behavior": "Lists projects with dependency status",
+    "judge_scenario": "User wants overview of multi-step work"
+  },
+  {
+    "name": "query_waiting_for",
+    "category": "Query",
+    "prompt": "What am I waiting on from other people?",
+    "expected_behavior": "Lists delegated tasks with responsible parties",
+    "judge_scenario": "User wants to see externally-blocked work"
+  },
+  {
+    "name": "query_context_filtered",
+    "category": "Query",
+    "prompt": "What can I do at the office right now?",
+    "expected_behavior": "Returns tasks requiring @office context when available",
+    "judge_scenario": "User asks for context-specific work"
+  },
+  {
+    "name": "query_stuck_projects",
+    "category": "Query",
+    "prompt": "Which projects haven't made progress lately?",
+    "expected_behavior": "Identifies projects with no activity in 14+ days",
+    "judge_scenario": "User wants to identify stalled work"
+  },
+  {
+    "name": "query_specific_task",
+    "category": "Query",
+    "prompt": "Tell me about the vendor contract task.",
+    "expected_behavior": "Finds matching task, shows details and dependencies",
+    "judge_scenario": "User wants details about specific task",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Finalize vendor contract",
+          "isComplete": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "query_weekly_review",
+    "category": "Query",
+    "prompt": "Show me my weekly review.",
+    "expected_behavior": "Presents completed work, active projects, stuck projects, next actions, waiting for, contexts",
+    "judge_scenario": "User requests comprehensive status overview"
+  },
+  {
+    "name": "update_mark_complete",
+    "category": "Update",
+    "prompt": "I finished filing the quarterly taxes.",
+    "expected_behavior": "Marks task complete",
+    "judge_scenario": "User reports task completion",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "File quarterly taxes",
+          "isComplete": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "update_add_details",
+    "category": "Update",
+    "prompt": "For the board presentation task, add a note that I need to include the Q3 metrics.",
+    "expected_behavior": "Appends note to task content",
+    "judge_scenario": "User adds information to existing task",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Prepare board presentation",
+          "isComplete": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "update_context_availability",
+    "category": "Update",
+    "prompt": "I just got to the office.",
+    "expected_behavior": "Sets @office context to available",
+    "judge_scenario": "User reports location change",
+    "graph_setup": {
+      "contexts": [
+        {
+          "content": "@office",
+          "isAvailable": false
+        }
+      ],
+      "tasks": [
+        {
+          "content": "Print quarterly packets",
+          "isComplete": false,
+          "depends_on": [
+            "@office"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "update_manual_state",
+    "category": "Update",
+    "prompt": "The weather cleared up, it's good for painting now.",
+    "expected_behavior": "Updates weather state to true",
+    "judge_scenario": "User reports condition change",
+    "graph_setup": {
+      "states": [
+        {
+          "content": "Weather is good for painting",
+          "isTrue": false
+        }
+      ],
+      "tasks": [
+        {
+          "content": "Paint exterior trim",
+          "isComplete": false,
+          "depends_on": [
+            "Weather is good for painting"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "update_add_dependency",
+    "category": "Update",
+    "prompt": "Actually, before I can send the board update, I need to get approval from finance first.",
+    "expected_behavior": "Adds new dependency to existing task",
+    "judge_scenario": "User identifies additional prerequisite",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Send board update",
+          "isComplete": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "delete_simple",
+    "category": "Delete",
+    "prompt": "Delete the old blog post idea task.",
+    "expected_behavior": "Deletes task without dependencies",
+    "judge_scenario": "User removes standalone task",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Old blog post idea",
+          "isComplete": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "delete_with_dependency_warning",
+    "category": "Delete",
+    "prompt": "Delete the old onboarding checklist.",
+    "expected_behavior": "Warns about dependent task, asks for confirmation, then deletes if user confirms",
+    "judge_scenario": "User wants to delete task that has dependent tasks - assistant should warn and ask for confirmation, then proceed when confirmed",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Old onboarding checklist",
+          "isComplete": false,
+          "id": "onboarding"
+        },
+        {
+          "content": "Complete onboarding tasks",
+          "isComplete": false,
+          "depends_on": [
+            "onboarding"
+          ]
+        }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 3,
+      "validate_mcp_before_ask": true,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Delete the old onboarding checklist (user will confirm cascade deletion if warned)",
+      "success_criteria": [
+        "Assistant warns about dependent tasks before deleting",
+        "User confirms deletion",
+        "Old onboarding checklist task is deleted",
+        "Dependent 'Complete onboarding tasks' is also deleted (cascade)"
+      ]
+    }
+  },
+  {
+    "name": "edge_empty_results",
+    "category": "Edge",
+    "prompt": "Any next actions for @studio?",
+    "expected_behavior": "Handles empty results gracefully",
+    "judge_scenario": "User queries context with no matching work"
+  },
+  {
+    "name": "edge_ambiguous_reference",
+    "category": "Edge",
+    "prompt": "Mark the proposal done.",
+    "expected_behavior": "Searches graph, finds 3 proposals, asks which one, then marks specified one complete",
+    "judge_scenario": "User refers ambiguously to one of multiple tasks - assistant should search first, then ask",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Write Q4 budget proposal",
+          "isComplete": false
+        },
+        {
+          "content": "Review marketing proposal",
+          "isComplete": false
+        },
+        {
+          "content": "Submit project proposal",
+          "isComplete": false
+        }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 3,
+      "validate_mcp_before_ask": true,
+      "require_search_first": true,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Mark the marketing proposal task as complete",
+      "success_criteria": [
+        "The 'Review marketing proposal' task is marked complete (isComplete=true)",
+        "Other proposal tasks remain unchanged"
+      ]
+    }
+  },
+  {
+    "name": "edge_conflicting_update",
+    "category": "Edge",
+    "prompt": "Mark the website redesign complete and also add three new subtasks to it.",
+    "expected_behavior": "Identifies conflict (can't add subtasks to completed task), asks for clarification, then follows user preference",
+    "judge_scenario": "User gives contradictory instructions - assistant should identify conflict and ask",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Website redesign",
+          "isComplete": false
+        }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 3,
+      "validate_mcp_before_ask": true,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Mark the website redesign task as complete (user changed mind about adding subtasks)",
+      "success_criteria": [
+        "The 'Website redesign' task is marked complete (isComplete=true)",
+        "No new subtasks created"
+      ]
+    }
+  },
+  {
+    "name": "edge_undefined_context",
+    "category": "Edge",
+    "prompt": "What can I do at the park?",
+    "expected_behavior": "Searches for @park context, doesn't find it, offers to create it, then creates upon confirmation",
+    "judge_scenario": "User mentions location not yet tracked - assistant should search then offer to create",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 3,
+      "validate_mcp_before_ask": true,
+      "require_search_first": true,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Create the @park context so I can track tasks I can do at the park",
+      "success_criteria": [
+        "A new context node is created with content '@park' or 'park'"
+      ]
+    }
+  },
+  {
+    "name": "edge_ask_vs_infer",
+    "category": "Edge",
+    "prompt": "Work on the project.",
+    "expected_behavior": "Searches for projects, finds multiple, asks which one specifically, then provides next actions for specified project",
+    "judge_scenario": "User gives vague instruction requiring clarification - assistant should search then ask",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Website redesign",
+          "isComplete": false,
+          "id": "web",
+          "depends_on": []
+        },
+        {
+          "content": "Design new homepage",
+          "isComplete": false,
+          "depends_on": [
+            "web"
+          ]
+        },
+        {
+          "content": "Mobile app launch",
+          "isComplete": false,
+          "id": "mobile",
+          "depends_on": []
+        },
+        {
+          "content": "Implement login flow",
+          "isComplete": false,
+          "depends_on": [
+            "mobile"
+          ]
+        }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 3,
+      "validate_mcp_before_ask": true,
+      "require_search_first": true,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Get next actions for the website redesign project",
+      "success_criteria": [
+        "Assistant identifies next actions for website redesign project",
+        "Response mentions 'Design new homepage' as a next action"
+      ]
+    }
+  },
+  {
+    "name": "judge_negative_unsafe_delete",
+    "category": "NegativeControl",
+    "prompt": "Delete the design mockups task.",
+    "assistant_override": "I've deleted the 'design mockups' task. The 'review designs' task that depended on it is now orphaned.",
+    "expected_behavior": "Should have warned about dependency before deleting",
+    "expected_pass": false,
+    "judge_scenario": "Deletes without warning about dependencies (should fail SAFE)"
+  },
+  {
+    "name": "judge_negative_ambiguous_completion",
+    "category": "NegativeControl",
+    "prompt": "Mark the report complete.",
+    "assistant_override": "I've marked the Q4 financial report as complete.",
+    "expected_behavior": "Should ask which report when multiple exist",
+    "expected_pass": false,
+    "judge_scenario": "Acts on ambiguous reference without clarifying (should fail SAFE)"
+  },
+  {
+    "name": "judge_negative_unclear_response",
+    "category": "NegativeControl",
+    "prompt": "What should I work on next?",
+    "assistant_override": "Task node query executed with filters: {isComplete: false, deps: satisfied}. Result set: [task_901, task_1057, task_2234]. Dependency graph validated.",
+    "expected_behavior": "Should provide clear, user-friendly response",
+    "expected_pass": false,
+    "judge_scenario": "Provides technical jargon instead of helpful response (should fail CLEAR)"
+  },
+  {
+    "name": "judge_negative_not_effective",
+    "category": "NegativeControl",
+    "prompt": "I finished the quarterly report.",
+    "assistant_override": "That's great! Quarterly reports are important for tracking progress. Make sure to share it with your team.",
+    "expected_behavior": "Should mark task complete in graph",
+    "expected_pass": false,
+    "judge_scenario": "Acknowledges but doesn't actually complete task (should fail EFFECTIVE)"
+  }
+]

@@ -1,13 +1,6 @@
 {
-  "servers": {
-    "graph-memory-core": {
-      "command": "node",
-      "args": ["/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js"],
-      "env": { "BASE_PATH": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory" }
-    }
-  },
   "mcpServers": {
-    "graph-memory-core": {
+    "gtd-graph-memory": {
       "command": "node",
       "args": ["/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js"],
       "env": { "BASE_PATH": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory" }
