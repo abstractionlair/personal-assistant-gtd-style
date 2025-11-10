@@ -45,6 +45,37 @@ Available validation tools:
 - If assistant mentioned dependencies, verify connections exist
 - Don't just trust the assistant's description - check actual graph state
 
+## GTD System Reference
+
+The assistant follows GTD methodology with this data model:
+
+**Node Types**:
+- **Task**: Work items (properties: `isComplete` boolean required, `responsibleParty` string optional)
+- **Context**: Locations/tools (@office, @phone, @laptop) (properties: `isAvailable` boolean required)
+- **State**: Environmental conditions (properties: `isTrue` boolean, `logic` string - only "MANUAL" in current system)
+- **UNSPECIFIED**: Singleton node for undefined next steps
+
+**Connection Type**:
+- **DependsOn**: Directional dependency (from→to means "from depends on to")
+  - Task→Task: Sequential dependency (complete `to` before `from`)
+  - Task→Context: Requires location/tool to be actionable
+  - Task→State: Blocked until condition is true
+  - Task→UNSPECIFIED: Next step is undefined
+
+**Key Concepts**:
+- **Projects**: Tasks with outgoing DependsOn connections (derived, not a separate node type)
+- **Next Actions**: Incomplete Tasks where ALL dependencies are satisfied
+- **Waiting For**: Tasks with `responsibleParty` not equal to "me"
+
+**Expected Behavioral Rules**:
+1. **Query First**: Assistant MUST search/query graph before responding (never assume empty)
+2. **Capture Immediately**: Create tasks without asking permission (non-destructive)
+3. **Update Existing**: Search first to avoid creating duplicates
+4. **Confirm Destructive**: Ask before deleting (especially if dependencies exist)
+5. **Ask When Ambiguous**: Clarify when multiple matches or unclear references
+
+When validating responses, check if the assistant followed these rules AND achieved the expected outcome in the graph.
+
 Evaluate on these THREE dimensions only:
 
 1. EFFECTIVE: Did it accomplish what the user wanted?
@@ -155,11 +186,16 @@ JUDGE_TEMPLATE = textwrap.dedent(
 
 Assistant's full response (including MCP tool calls): {response}
 
-Context:
+Test Context:
+- Category: {category}
 - Mode: {mode}
 - Test scenario: {scenario_description}
 
-Note: The response includes the complete transcript with any MCP tool calls made. Evaluate whether the assistant actually executed the necessary operations, not just described them.
+Expected behavior: {expected_behavior}
+
+{graph_setup_section}{success_criteria_section}{validation_requirements_section}
+Note: The response includes the complete transcript with any MCP tool calls made.
+Use your MCP tools to verify actual graph state matches the expected behavior.
 
 Evaluate using the three dimensions (EFFECTIVE, SAFE, CLEAR).
 """
@@ -241,6 +277,111 @@ class Verdict:
         return result
 
 
+def format_graph_setup(graph_setup: Optional[Dict[str, Any]]) -> str:
+    """Format graph setup section for judge context.
+
+    Args:
+        graph_setup: Optional dict with tasks/contexts/states initial state
+
+    Returns:
+        Formatted section or empty string if no graph setup
+    """
+    if not graph_setup:
+        return ""
+
+    sections = []
+
+    if "tasks" in graph_setup and graph_setup["tasks"]:
+        task_list = []
+        for task in graph_setup["tasks"]:
+            parts = [f"'{task['content']}'"]
+            if not task.get("isComplete", False):
+                parts.append("incomplete")
+            else:
+                parts.append("complete")
+            if "responsibleParty" in task:
+                parts.append(f"responsible: {task['responsibleParty']}")
+            task_list.append(" - " + ", ".join(parts))
+        sections.append("Tasks:\n" + "\n".join(task_list))
+
+    if "contexts" in graph_setup and graph_setup["contexts"]:
+        context_list = []
+        for ctx in graph_setup["contexts"]:
+            parts = [f"'{ctx['content']}'"]
+            if ctx.get("isAvailable", False):
+                parts.append("available")
+            else:
+                parts.append("unavailable")
+            context_list.append(" - " + ", ".join(parts))
+        sections.append("Contexts:\n" + "\n".join(context_list))
+
+    if "states" in graph_setup and graph_setup["states"]:
+        state_list = []
+        for state in graph_setup["states"]:
+            parts = [f"'{state['content']}'"]
+            if state.get("isTrue", False):
+                parts.append("true")
+            else:
+                parts.append("false")
+            state_list.append(" - " + ", ".join(parts))
+        sections.append("States:\n" + "\n".join(state_list))
+
+    if sections:
+        return "Initial Graph State:\n" + "\n\n".join(sections)
+
+    return ""
+
+
+def format_success_criteria(conversational_config: Optional[Dict[str, Any]]) -> str:
+    """Format success criteria section for judge context.
+
+    Args:
+        conversational_config: Optional conversational test configuration
+
+    Returns:
+        Formatted section or empty string if no criteria
+    """
+    if not conversational_config:
+        return ""
+
+    criteria = conversational_config.get("success_criteria", [])
+    if not criteria:
+        return ""
+
+    criteria_list = "\n".join(f" - {c}" for c in criteria)
+    return f"Success Criteria:\n{criteria_list}"
+
+
+def format_validation_requirements(conversational_config: Optional[Dict[str, Any]]) -> str:
+    """Format validation requirements section for judge context.
+
+    Args:
+        conversational_config: Optional conversational test configuration
+
+    Returns:
+        Formatted section or empty string if no requirements
+    """
+    if not conversational_config:
+        return ""
+
+    requirements = []
+
+    if conversational_config.get("require_search_first"):
+        requirements.append("MUST search/query graph BEFORE asking questions")
+
+    if conversational_config.get("validate_mcp_before_ask"):
+        requirements.append("MUST use MCP tools to gather information before asking user")
+
+    if conversational_config.get("max_turns"):
+        requirements.append(f"Should complete within {conversational_config['max_turns']} conversation turns")
+
+    if not requirements:
+        return ""
+
+    req_list = "\n".join(f" - {r}" for r in requirements)
+    return f"Validation Requirements:\n{req_list}"
+
+
 def run_claude_judge(
     judge_prompt: str,
     mcp_config_path: Optional[Path],
@@ -302,12 +443,31 @@ def run_judge_single_attempt(
     if not scenario_description:
         scenario_description = f"User {case['category'].lower()} scenario"
 
+    # Build conditional sections from test metadata
+    graph_setup_section = format_graph_setup(case.get("graph_setup"))
+    if graph_setup_section:
+        graph_setup_section += "\n\n"
+
+    conversational_config = case.get("conversational")
+    success_criteria_section = format_success_criteria(conversational_config)
+    if success_criteria_section:
+        success_criteria_section += "\n\n"
+
+    validation_requirements_section = format_validation_requirements(conversational_config)
+    if validation_requirements_section:
+        validation_requirements_section += "\n\n"
+
     # Use full output (including MCP tool calls) for judge evaluation
     judge_prompt = JUDGE_TEMPLATE.format(
         prompt=case["prompt"],
         response=full_output if full_output else assistant_text,
+        category=case.get("category", "Unknown"),
         mode=env_mode,
-        scenario_description=scenario_description
+        scenario_description=scenario_description,
+        expected_behavior=case.get("expected_behavior", "Not specified"),
+        graph_setup_section=graph_setup_section,
+        success_criteria_section=success_criteria_section,
+        validation_requirements_section=validation_requirements_section
     )
 
     try:
