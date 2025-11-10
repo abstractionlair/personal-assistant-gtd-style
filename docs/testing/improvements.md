@@ -123,35 +123,32 @@ the assistant cannot help.
 
 #### Judge with Direct MCP Server Access
 
-**Status**: High-impact architectural change
-**Current state**: Judge only sees text responses and MCP logs (files)
+**Status**: Phase 1 Complete ✅ | Phase 2 Ready
+**Current state**: Judge has MCP access and verifies basic operations
 
-**Required changes**:
-1. **Judge can query MCP server directly**:
-   - Verify actual graph state after test completes
-   - Not just logs (what was called) but outcomes (what resulted)
-   - Examples:
-     - "Task should exist" → Judge queries for task, confirms existence
-     - "Task should be complete" → Judge reads task properties
-     - "Two tasks should have dependency" → Judge queries connections
+**Implementation Plan**: 📋 [judge-mcp-access.md](plans/judge-mcp-access.md)
 
-2. **Judge-driven validation (not hardcoded Python)**:
-   - Remove simple checks like `_has_mcp_calls()` from Python
-   - Judge model decides what to look for based on test scenario
-   - More flexible and intelligent validation
+**Phase 1 Completed (2025-11-09)**:
+- ✅ Updated judge system prompt with MCP access guidance
+- ✅ Tested with capture, update, and delete operations
+- ✅ Judge successfully verifies actual graph state vs. claims
+- ✅ Example verdicts: "Verified via MCP tools that task was marked complete (isComplete: true)"
 
-3. **Judge allows leeway for clarifying questions**:
-   - If assistant asks clarifying questions (which user-proxy answers)
-   - And then gets the right answer "quickly enough"
-   - Judge should still PASS the test
-   - Don't penalize assistants for appropriate clarification
+**Summary**:
+- **Goal**: Judge queries MCP server to verify actual graph state (ground truth validation)
+- **Approach**: Pass `--mcp-config` to judge's Claude CLI subprocess
+- **Phases**: 3 phases over 2-4 weeks (basic access → enhanced prompts → optional test case enhancements)
+- **Success metrics**: >80% MCP usage, catches real bugs, <10% false positives, <30% performance impact
 
-**Implementation options**:
-1. Judge gets same MCP config as assistant
-2. Judge uses Python MCP client library directly
-3. Judge uses dedicated read-only validation tools
+**Key benefits**:
+- Catches silent MCP failures (assistant claims action but tool call failed)
+- Verifies actual outcomes, not just claims
+- Enables removing hardcoded Python assertions
+- More flexible and intelligent validation
 
-**Benefit**: Ground truth validation, catches cases where assistant called tools but state is wrong
+**Next Step**: Phase 2 - Enhanced judge prompts with detailed validation patterns
+
+**See plan for**: Design decisions, implementation details, edge cases, testing strategy, rollout timeline
 
 #### Interrogator Drives Session and Sees Judge Verdict
 

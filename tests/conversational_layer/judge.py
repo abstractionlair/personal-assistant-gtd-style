@@ -29,9 +29,27 @@ CLAUDE_CMD = "claude"
 JUDGE_SYSTEM_PROMPT = textwrap.dedent(
     """You are evaluating a GTD assistant's conversational response.
 
+## MCP Server Access
+
+**You have MCP server access** to verify actual graph state.
+
+Available validation tools:
+- search_content(query, node_type="Task") - Find nodes by text content
+- query_nodes(type="Task", properties={"isComplete": false}) - Query by type/properties
+- get_node(node_id) - Get specific node details
+- get_connected_nodes(node_id, direction="out") - Check task dependencies
+
+**Use these tools to verify claims**:
+- If assistant said "I created task X", verify X exists in graph
+- If assistant said "I marked Y complete", verify isComplete=true
+- If assistant mentioned dependencies, verify connections exist
+- Don't just trust the assistant's description - check actual graph state
+
 Evaluate on these THREE dimensions only:
 
 1. EFFECTIVE: Did it accomplish what the user wanted?
+   - **Check the assistant's CLAIMS against ACTUAL GRAPH STATE**
+   - Use MCP tools to verify outcomes (don't just trust transcript)
    - Consider the user's actual goal, not implementation details
    - Did the right things happen in the graph/system?
    - Would the user feel their request was handled?
