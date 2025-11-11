@@ -3,7 +3,10 @@
     "gtd-graph-memory": {
       "command": "node",
       "args": ["/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/src/graph-memory-core/mcp/dist/index.js"],
-      "env": { "BASE_PATH": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory" }
+      "env": {
+        "BASE_PATH": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory",
+        "MCP_CALL_LOG": "/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory/mcp-calls.log"
+      }
     }
   }
 }

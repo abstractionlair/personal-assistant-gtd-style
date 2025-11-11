@@ -4,6 +4,7 @@ Orchestrates test execution, judge evaluation, interrogation, and results collec
 """
 
 import json
+import os
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -33,6 +34,33 @@ from .results_db import ResultsDB
 
 
 CLAUDE_CMD = "claude"
+MCP_LOG_PATH = Path("/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory/mcp-calls.log")
+
+
+def clear_mcp_log() -> None:
+    """Clear MCP call log file before test execution."""
+    try:
+        if MCP_LOG_PATH.exists():
+            MCP_LOG_PATH.unlink()
+    except Exception as e:
+        logger = get_logger()
+        logger.warning(f"Failed to clear MCP log: {e}")
+
+
+def read_mcp_log() -> str:
+    """Read MCP call log file after test execution.
+
+    Returns:
+        String content of MCP log file, or empty string if not found
+    """
+    try:
+        if MCP_LOG_PATH.exists():
+            return MCP_LOG_PATH.read_text(encoding='utf-8')
+    except Exception as e:
+        logger = get_logger()
+        logger.warning(f"Failed to read MCP log: {e}")
+
+    return ""
 
 
 def run_claude_assistant(
@@ -57,7 +85,7 @@ def run_claude_assistant(
     args = [CLAUDE_CMD]
     if mcp_config_path:
         args += ["--mcp-config", str(mcp_config_path)]
-    args += ["--dangerously-skip-permissions", "--print", "--output-format", "json"]
+    args += ["--model", "sonnet", "--dangerously-skip-permissions", "--print", "--output-format", "json"]
 
     if system_prompt_path and system_prompt_path.exists():
         args += ["--system-prompt", str(system_prompt_path)]
@@ -90,9 +118,12 @@ def run_assistant_single_attempt(
         append_prompts: System prompt additions
 
     Returns:
-        Result dictionary with pass/assistant/full_output/session_id
+        Result dictionary with pass/assistant/full_output/mcp_logs/session_id
     """
     logger = get_logger()
+
+    # Clear MCP log before execution
+    clear_mcp_log()
 
     try:
         result = run_claude_assistant(
@@ -103,6 +134,9 @@ def run_assistant_single_attempt(
             config.assistant_timeout
         )
 
+        # Read MCP logs after execution
+        mcp_logs = read_mcp_log()
+
         if result.returncode != 0:
             reason = result.stderr.strip() or "Assistant CLI error"
             logger.warning(f"Assistant CLI error: {reason}")
@@ -110,6 +144,7 @@ def run_assistant_single_attempt(
                 "pass": False,
                 "assistant": "",
                 "full_output": "",
+                "mcp_logs": mcp_logs,
                 "reason": reason,
                 "retry": True
             }
@@ -121,6 +156,7 @@ def run_assistant_single_attempt(
                 "pass": False,
                 "assistant": result.stdout.strip(),
                 "full_output": result.stdout.strip(),
+                "mcp_logs": mcp_logs,
                 "reason": "Assistant returned non-JSON output",
                 "retry": True
             }
@@ -128,25 +164,35 @@ def run_assistant_single_attempt(
         session_id = payload.get("session_id", "")
         assistant_text = extract_text(payload).strip()
 
+        # Combine stdout and MCP logs in full_output
+        full_output = result.stdout.strip()
+        if mcp_logs:
+            full_output += "\n\n=== MCP Tool Calls ===\n" + mcp_logs
+
         return {
             "pass": True,
             "assistant": assistant_text,
-            "full_output": result.stdout.strip(),
+            "full_output": full_output,
+            "mcp_logs": mcp_logs,
             "session_id": session_id,
             "retry": False
         }
 
     except subprocess.TimeoutExpired:
         logger.error(f"Assistant timeout after {config.assistant_timeout}s")
+        mcp_logs = read_mcp_log()
         return {
             "pass": False,
             "assistant": "",
             "full_output": "",
+            "mcp_logs": mcp_logs,
             "reason": f"Assistant timeout ({config.assistant_timeout}s)",
             "retry": True
         }
     except Exception as e:
+        mcp_logs = read_mcp_log()
         error_dict = handle_subprocess_error(e, "run_assistant")
+        error_dict["mcp_logs"] = mcp_logs
         return error_dict
 
 
@@ -215,6 +261,10 @@ def run_single_test(
     elif is_conversational_test(case):
         # Multi-turn conversation with LLM user-proxy
         logger.info(f"Running conversational test: {case['name']}")
+
+        # Clear MCP log before conversation
+        clear_mcp_log()
+
         conv_config = extract_conversational_config(case)
         user_proxy = LLMUserProxy(config)
 
@@ -226,12 +276,21 @@ def run_single_test(
             case=case
         )
 
+        # Read MCP logs after conversation completes
+        mcp_logs = read_mcp_log()
+
         # Convert ConversationResult to assistant_result format
         if conv_result.success:
+            # Combine transcript and MCP logs
+            full_output = conv_result.full_transcript
+            if mcp_logs:
+                full_output += "\n\n=== MCP Tool Calls ===\n" + mcp_logs
+
             assistant_result = {
                 "pass": True,
                 "assistant": conv_result.final_response,
-                "full_output": conv_result.full_transcript,
+                "full_output": full_output,
+                "mcp_logs": mcp_logs,
                 "session_id": conv_result.session_id
             }
         else:
@@ -239,6 +298,7 @@ def run_single_test(
                 "pass": False,
                 "assistant": "",
                 "full_output": "",
+                "mcp_logs": mcp_logs,
                 "reason": conv_result.reason,
                 "session_id": conv_result.session_id
             }

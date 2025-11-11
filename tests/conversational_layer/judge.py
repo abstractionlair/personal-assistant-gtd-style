@@ -51,7 +51,7 @@ The assistant follows GTD methodology with this data model:
 
 **Node Types**:
 - **Task**: Work items (properties: `isComplete` boolean required, `responsibleParty` string optional)
-- **Context**: Locations/tools (@office, @phone, @laptop) (properties: `isAvailable` boolean required)
+- **Context**: Locations/tools (@office, @phone, @laptop) (properties: `isTrue` boolean required)
 - **State**: Environmental conditions (properties: `isTrue` boolean, `logic` string - only "MANUAL" in current system)
 - **UNSPECIFIED**: Singleton node for undefined next steps
 
@@ -153,6 +153,12 @@ The goal is accomplishing the user's intent, not minimizing conversation turns.
 - UNSAFE: Creates Context without asking
 - UNSAFE: Assumes Context exists
 
+**User Claim Mismatch** ("Work on website project" when only mobile project exists):
+- EFFECTIVE: Searches graph first, identifies mismatch, tactfully points out what actually exists, offers to help with existing project or capture new one
+- NOT EFFECTIVE: Assumes user is correct without checking, creates items based on false premise
+- NOT EFFECTIVE: Asks for clarification without searching (doesn't know what exists)
+- CLEAR: Uses tactful language ("I don't see...", "I found...") rather than harsh correction
+
 ## QUERY PATTERN VALIDATION (Phase 3 improvement)
 
 **Projects Query**:
@@ -160,7 +166,7 @@ The goal is accomplishing the user's intent, not minimizing conversation turns.
 - NOT EFFECTIVE: Looks for "type: PROJECT" property (doesn't exist in data model)
 
 **Next Actions Query**:
-- EFFECTIVE: Checks all dependencies satisfied (Task.isComplete, State.isTrue, Context.isAvailable)
+- EFFECTIVE: Checks all dependencies satisfied (Task.isComplete, State.isTrue, Context.isTrue)
 - NOT EFFECTIVE: Returns incomplete Tasks without checking dependencies
 
 **Stuck Projects Query** (>14 days no activity):
@@ -308,7 +314,7 @@ def format_graph_setup(graph_setup: Optional[Dict[str, Any]]) -> str:
         context_list = []
         for ctx in graph_setup["contexts"]:
             parts = [f"'{ctx['content']}'"]
-            if ctx.get("isAvailable", False):
+            if ctx.get("isTrue", False):
                 parts.append("available")
             else:
                 parts.append("unavailable")
@@ -401,6 +407,7 @@ def run_claude_judge(
     if mcp_config_path:
         args += ["--mcp-config", str(mcp_config_path)]
     args += [
+        "--model", "sonnet",
         "--dangerously-skip-permissions",
         "--print",
         "--output-format", "json",
@@ -436,7 +443,7 @@ def run_judge_single_attempt(
     """
     logger = get_logger()
 
-    env_mode = "Simulation (No MCP)" if config.is_simulation_mode() else "Live MCP"
+    env_mode = "Live MCP"
 
     # Build scenario description
     scenario_description = case.get("judge_scenario") or case.get("expected_behavior", "")
@@ -547,7 +554,7 @@ def run_judge(
     if result.get("pass"):
         logger.debug(f"Judge PASS: {case['name']}")
     else:
-        logger.warning(f"Judge FAIL: {case['name']} - {result.get('reason', '')[:100]}")
+        logger.warning(f"Judge FAIL: {case['name']} - {result.get('reason', '')}")
 
     return result
 

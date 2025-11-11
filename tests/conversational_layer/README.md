@@ -27,6 +27,18 @@ A modular, robust LLM-as-judge test framework for evaluating GTD (Getting Things
 - **Category statistics**: Pass rates by test category
 - **Export to JSON**: Portable result format for analysis
 
+### Phase 6: Markdown Report Generation
+- **Collapsible sections**: HTML `<details>` tags for test and run details
+- **Pretty JSON formatting**: Readable transcripts with indented JSON
+- **Interrogation visibility**: Q&A pairs included in reports
+- **Summary statistics**: Pass rates, flaky tests, category breakdowns
+
+### Phase 7: MCP Tool Call Logging
+- **Tool call capture**: Complete log of MCP operations during test execution
+- **Judge visibility**: MCP logs included in `full_output` for evaluation
+- **Human analysis**: Detailed operation sequence with timestamps, inputs, results, and errors
+- **Database storage**: MCP logs persisted in `full_transcript` column
+
 ## Architecture
 
 ```
@@ -40,6 +52,7 @@ tests/conversational_layer/
 ├── user_proxy.py        # Multi-turn conversations
 ├── fixtures.py          # Graph setup/cleanup
 ├── results_db.py        # SQLite persistence
+├── markdown_report.py   # Markdown report generation
 ├── retry.py             # Exponential backoff
 ├── errors.py            # Error handling
 └── logging_config.py    # Structured logging
@@ -53,7 +66,7 @@ No additional dependencies beyond the base project requirements.
 
 ### Basic Usage
 
-**Note**: Tests always run in Live MCP mode (requires MCP server).
+**Note**: Tests require MCP server to be running.
 
 ```bash
 # Run all tests once
@@ -67,19 +80,26 @@ python tests/test_conversational_layer_new.py --runs 5 --inter-run-delay 10
 
 # Clean graph between tests
 python tests/test_conversational_layer_new.py --clean-graph-between-tests
+
+# Generate markdown report
+python tests/test_conversational_layer_new.py --markdown-report tests/report.md
 ```
 
 ### Interrogation Mode
 
+**Note:** Interrogation is **enabled by default** (both passes and failures).
+
 Ask the assistant follow-up questions to understand failures and evaluate instruction quality:
 
 ```bash
-# Interrogate failures only
-python tests/test_conversational_layer_new.py --interrogate-failures
+# Default behavior: interrogate all (both passes and failures)
+python tests/test_conversational_layer_new.py
 
-# Interrogate both passes and failures
-python tests/test_conversational_layer_new.py --interrogate-all \
-  --interrogation-log results.json
+# Disable interrogation (faster runs)
+# Use --no-interrogate-failures and --no-interrogate-passes (not yet implemented)
+
+# Save interrogation transcripts to JSON
+python tests/test_conversational_layer_new.py --interrogation-log results.json
 ```
 
 ### Results Database Queries
@@ -109,7 +129,7 @@ export MCP_CONFIG_PATH=/path/to/mcp-config.json
 
 # Custom timeouts
 export CLAUDE_TIMEOUT_ASSISTANT=600  # Assistant timeout (seconds)
-export CLAUDE_TIMEOUT_JUDGE=60       # Judge timeout (seconds)
+export CLAUDE_TIMEOUT_JUDGE=120      # Judge timeout (seconds)
 
 # Print assistant response on failure
 export PRINT_ASSISTANT_ON_FAIL=1
@@ -132,12 +152,12 @@ export PRINT_ASSISTANT_ON_FAIL=1
 
 #### Timeouts
 - `--assistant-timeout SECONDS` - Assistant timeout (default: 600)
-- `--judge-timeout SECONDS` - Judge timeout (default: 60)
-- `--interrogation-timeout SECONDS` - Interrogation timeout (default: 60)
+- `--judge-timeout SECONDS` - Judge timeout (default: 120)
+- `--interrogation-timeout SECONDS` - Interrogation timeout (default: 120)
 - `--cleanup-timeout SECONDS` - Graph cleanup timeout (default: 120)
 
 #### Features
-- `--mode real` - Test mode (always Live MCP)
+- `--mode real` - Test mode
 - `--clean-graph-between-tests` - Delete all graph nodes between tests
 - `--interrogate-failures` - Ask follow-up questions on failures
 - `--interrogate-passes` - Survey assistant on successes
@@ -148,6 +168,7 @@ export PRINT_ASSISTANT_ON_FAIL=1
 - `--log-level {DEBUG,INFO,WARN,ERROR}` - Logging level (default: INFO)
 - `--results-db PATH` - Results database path (default: test_results.db)
 - `--interrogation-log PATH` - Save interrogation transcripts to JSON
+- `--markdown-report PATH` - Generate markdown report after test run
 - `--print-assistant-on-fail` - Print full assistant response on failure
 
 ## Test Case Format
@@ -306,7 +327,7 @@ Extract uncertainty mentions from answers:
 **runs**: Test run metadata
 - `run_id`: Primary key
 - `timestamp`: ISO 8601 timestamp
-- `mode`: Always "real" (Live MCP)
+- `mode`: Always "real"
 - `runs_count`: Number of runs executed
 - `test_count`: Total tests run
 - `passed_count`: Tests that passed

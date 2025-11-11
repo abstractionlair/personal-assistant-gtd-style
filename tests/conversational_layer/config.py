@@ -16,7 +16,7 @@ class Config:
         # Paths
         system_prompt_path: Path to system prompt file
         test_cases_path: Path to test cases JSON
-        mcp_config_path: Path to MCP config (None for simulation mode)
+        mcp_config_path: Path to MCP config
 
         # Execution
         runs: Number of times to run each test
@@ -45,6 +45,7 @@ class Config:
         results_db: Path to results database
         interrogation_log: Path to interrogation log (optional)
         print_assistant_on_fail: Whether to print assistant output on failure
+        markdown_report: Path to generated Markdown report (optional)
 
         # CLI
         suite: Test suite to run ('assistant' or 'judge')
@@ -68,15 +69,15 @@ class Config:
 
     # Timeouts
     assistant_timeout: float = 600.0
-    judge_timeout: float = 60.0
-    interrogation_timeout: float = 60.0
+    judge_timeout: float = 120.0  # Increased for complex evaluations
+    interrogation_timeout: float = 120.0  # Increased for complex interrogations
     cleanup_timeout: float = 120.0
 
     # Features
     mode: str = "real"  # Always 'real' (Live MCP)
     clean_between_tests: bool = False
-    interrogate_failures: bool = False
-    interrogate_passes: bool = False
+    interrogate_failures: bool = True  # Default: interrogate failures
+    interrogate_passes: bool = True  # Default: interrogate passes (--interrogate-all)
     use_refactored_cases: bool = True
 
     # Output
@@ -85,6 +86,7 @@ class Config:
     results_db: Path = Path("test_results.db")
     interrogation_log: Optional[Path] = None
     print_assistant_on_fail: bool = False
+    markdown_report: Optional[str] = None
 
     # CLI
     suite: str = "assistant"  # 'assistant' or 'judge'
@@ -136,10 +138,6 @@ class Config:
 
         if self.mcp_config_path and not self.mcp_config_path.exists():
             raise ValueError(f"MCP config not found: {self.mcp_config_path}")
-
-    def is_simulation_mode(self) -> bool:
-        """Check if running in simulation mode (always False now)."""
-        return False
 
     def is_live_mcp_mode(self) -> bool:
         """Check if running in live MCP mode (always True now)."""
@@ -215,6 +213,7 @@ class Config:
             "results_db": str(self.results_db),
             "interrogation_log": str(self.interrogation_log) if self.interrogation_log else None,
             "print_assistant_on_fail": self.print_assistant_on_fail,
+            "markdown_report": self.markdown_report,
             "suite": self.suite,
             "category": self.category,
             "test_name": self.test_name,
@@ -250,4 +249,6 @@ DEFAULT_CONFIG = Config(
     inter_run_delay=10.0,
     max_retries=3,
     initial_backoff=30.0,
+    interrogate_failures=True,  # Default: interrogate all
+    interrogate_passes=True,
 )
