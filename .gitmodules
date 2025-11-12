@@ -1,0 +1,3 @@
+[submodule "external/mcp-tool-gateway"]
+	path = external/mcp-tool-gateway
+	url = https://github.com/abstractionlair/mcp-tool-gateway
