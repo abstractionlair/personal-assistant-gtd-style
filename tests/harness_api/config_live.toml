@@ -1,0 +1,20 @@
+[roles.assistant]
+provider = "openai"
+model = "gpt-4o-mini"
+
+[roles.user_proxy]
+provider = "stub"
+model = "user"
+
+[roles.judge]
+provider = "openai"
+model = "gpt-4o-mini"
+
+[roles.interrogator]
+provider = "stub"
+model = "interrogator"
+
+[gateway]
+base_url = "http://localhost:8787"
+
+[stub_tool_responses]

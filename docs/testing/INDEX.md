@@ -53,6 +53,13 @@ cat /var/folders/.../mcp-test-logs/mcp-log-*.jsonl
 
 ## Documentation Map
 
+### 🧭 Plans
+- [plans/judge-mcp-access.md](plans/judge-mcp-access.md) — Judge with direct MCP access
+- [plans/api-harness-multi-provider.md](plans/api-harness-multi-provider.md) — API-driven, multi-provider test harness
+- [plans/mcp-tool-gateway.md](plans/mcp-tool-gateway.md) — Generic MCP bridge + clients repo plan
+- [plans/provider-fast-paths-todo.md](plans/provider-fast-paths-todo.md) — Provider fast paths (OpenAI Agents, xAI remote MCP) TODOs
+- [plans/mcp-tool-gateway.md](plans/mcp-tool-gateway.md) — Generic MCP bridge + clients repo plan
+
 ### 📘 [infrastructure.md](infrastructure.md)
 **Current implementation details** (1,653 lines)
 
@@ -188,7 +195,7 @@ Test task creation and duplicate detection.
 |-----------|------------|-------------------|
 | `capture_simple` | "Schedule dentist appointment" | Creates single Task node |
 | `capture_multiple` | "Call mom, email boss, buy groceries" | Creates 3 separate Task nodes |
-| `capture_with_context` | "Email the report when I'm @office" | Creates Task + Context + DependsOn connection |
+| `capture_with_context` | "Email the report when I'm atOffice" | Creates Task + Context + DependsOn connection |
 | `capture_duplicate_detection` | "Schedule dentist" (already exists) | Detects duplicate, asks to clarify |
 
 ### Query Tests
@@ -207,7 +214,7 @@ Test task modification operations.
 |-----------|------------|-------------------|
 | `update_complete_simple` | "Mark dentist appointment as done" | Sets isComplete=true on existing Task |
 | `update_add_note` | "Add note to report task: needs review" | Updates Task content or properties |
-| `update_change_context` | "Move report to @home instead of @office" | Updates DependsOn connections |
+| `update_change_context` | "Move report to atHome instead of atOffice" | Updates DependsOn connections |
 
 ### Delete Tests
 Test task removal operations.
@@ -230,8 +237,8 @@ Test context creation and availability.
 
 | Test Name | User Input | Expected Behavior |
 |-----------|------------|-------------------|
-| `context_create` | "Create @office context" | Creates Context node |
-| `context_available` | "@office is available now" | Sets isAvailable=true |
+| `context_create` | "Create atOffice context" | Creates Context node |
+| `context_available` | "atOffice is available now" | Sets isTrue=true |
 
 ### Edge Cases
 Test ambiguous or error-prone scenarios.
