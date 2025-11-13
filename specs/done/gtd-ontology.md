@@ -21,9 +21,9 @@ This feature provides the semantic foundation for the GTD system, transforming t
 - **Singleton Node Type**: UNSPECIFIED singleton type for marking tasks needing dependency decomposition
 - **Connection Type**: DependsOn connection with topology rules supporting Task↔Task, Task↔State, Task→Context, State↔Task, State↔State, and [Task|State]→UNSPECIFIED
 - **Setup Script**: One-time initialization script calling `create_ontology` and `ensure_singleton_node`
-- **Property Schemas**: Documented property types and constraints (isComplete, isTrue, logic, isAvailable, responsibleParty, timestamps)
+- **Property Schemas**: Documented property types and constraints (isComplete, isTrue, logic, isTrue, responsibleParty, timestamps)
 - **State Logic Types**: Support for ANY, ALL, MANUAL, and IMMUTABLE logic on State nodes
-- **Context Availability Tracking**: Context nodes with isAvailable property set manually by AI based on user reports
+- **Context Availability Tracking**: Context nodes with isTrue property set manually by AI based on user reports
 - **Query Pattern Documentation**: How to derive Projects, Next Actions, and Waiting For using graph-memory-core primitives
 - **State Update Algorithm**: Documented algorithm for ANY/ALL logic evaluation (for Feature 4 implementation)
 - **Completion Propagation Pattern**: Documented forward traversal pattern when marking items complete (for Feature 4 implementation)
@@ -50,7 +50,7 @@ After Feature 3 is complete, the GTD ontology is loaded into the graph-memory-co
 
 - Create Task nodes representing actions with completion tracking and optional responsibility assignment
 - Create State nodes representing world conditions with configurable dependency logic (ANY/ALL/MANUAL/IMMUTABLE)
-- Create Context nodes representing locations or tool availability (e.g., @home, @computer) with manual availability tracking
+- Create Context nodes representing locations or tool availability (e.g., atHome, hasComputer) with manual availability tracking
 - Create DependsOn connections modeling dependencies between Tasks, States, and Contexts
 - Query the UNSPECIFIED singleton to mark tasks needing decomposition
 - Execute query patterns to derive Projects (Tasks with dependencies), Next Actions (actionable Tasks), and Waiting For (externally-responsible Tasks)
@@ -140,7 +140,7 @@ function initializeGTDOntology(): { ok: boolean, error?: string }
 - `created`, `modified`: timestamps (automatic)
 
 **Context properties:**
-- `isAvailable`: boolean - Whether this context (location/tool) is currently available to work in
+- `isTrue`: boolean - Whether this context (location/tool) is currently available to work in
 - `created`, `modified`: timestamps (automatic)
 - Note: Set manually by AI when user reports location or tool availability (similar to MANUAL States)
 
@@ -256,7 +256,7 @@ function allDependenciesSatisfied(depNodes) {
     } else if (dep.type === "State") {
       if (!dep.properties.isTrue) return false
     } else if (dep.type === "Context") {
-      if (!dep.properties.isAvailable) return false
+      if (!dep.properties.isTrue) return false
     } else if (dep.type === "UNSPECIFIED") {
       return false // UNSPECIFIED always blocks
     }
@@ -417,7 +417,7 @@ function markComplete(nodeId) {
 - [ ] AC6: Can create Task nodes with required property `isComplete` (boolean)
 - [ ] AC7: Can create Task nodes with optional property `responsibleParty` (string)
 - [ ] AC8: Can create State nodes with required properties `isTrue` (boolean) and `logic` ("ANY"|"ALL"|"IMMUTABLE"|"MANUAL")
-- [ ] AC9: Can create Context nodes with required property `isAvailable` (boolean)
+- [ ] AC9: Can create Context nodes with required property `isTrue` (boolean)
 - [ ] AC10: Created/modified timestamps are automatically added by graph-memory-core to all nodes
 
 ### Connection Topology Validation
@@ -439,7 +439,7 @@ function markComplete(nodeId) {
 - [ ] AC22: Tasks with isComplete=true are excluded from Next Actions query
 - [ ] AC23: Tasks depending on incomplete Tasks are excluded from Next Actions query
 - [ ] AC24: Tasks depending on States with isTrue=false are excluded from Next Actions query
-- [ ] AC25: Tasks depending on Contexts with isAvailable=false are excluded from Next Actions query
+- [ ] AC25: Tasks depending on Contexts with isTrue=false are excluded from Next Actions query
 - [ ] AC26: Tasks depending on UNSPECIFIED are excluded from Next Actions query (UNSPECIFIED always blocks)
 
 ### Query Pattern - Waiting For
@@ -668,27 +668,27 @@ function markComplete(nodeId) {
 **Description:** Task can only be done in specific context (location or tool availability)
 
 **Given:**
-- Context "@home" with isAvailable=false
-- Context "@computer" with isAvailable=true
-- Task "Write blog post" with isComplete=false, DependsOn @computer
-- Task "Mow lawn" with isComplete=false, DependsOn @home
+- Context "atHome" with isTrue=false
+- Context "hasComputer" with isTrue=true
+- Task "Write blog post" with isComplete=false, DependsOn hasComputer
+- Task "Mow lawn" with isComplete=false, DependsOn atHome
 
 **When:**
 - Query Next Actions initially
 
 **Then:**
-- Returns "Write blog post" (@computer is available)
-- Does NOT return "Mow lawn" (@home is not available)
+- Returns "Write blog post" (hasComputer is available)
+- Does NOT return "Mow lawn" (atHome is not available)
 
 **When:**
 - User reports "I'm home now"
-- Feature 4 updates @home Context with isAvailable=true
+- Feature 4 updates atHome Context with isTrue=true
 - User reports "Computer is off"
-- Feature 4 updates @computer Context with isAvailable=false
+- Feature 4 updates hasComputer Context with isTrue=false
 
 **Then:**
-- Next Actions returns "Mow lawn" (@home now available)
-- Next Actions does NOT return "Write blog post" (@computer not available)
+- Next Actions returns "Mow lawn" (atHome now available)
+- Next Actions does NOT return "Write blog post" (hasComputer not available)
 
 **Note:** Context availability is set manually by AI based on user reports (similar to MANUAL States)
 
@@ -701,7 +701,7 @@ function markComplete(nodeId) {
 **Given:**
 - UNSPECIFIED singleton exists
 - Task "Some task" exists
-- Context "@home" exists
+- Context "atHome" exists
 
 **When:**
 - Attempt to create DependsOn from UNSPECIFIED to Task (invalid: singleton cannot be source)
@@ -794,31 +794,31 @@ function markComplete(nodeId) {
 **Structure:**
 ```typescript
 {
-  isAvailable: boolean,
+  isTrue: boolean,
   created: timestamp, // automatic
   modified: timestamp // automatic
 }
 ```
 
 **Invariants:**
-- `isAvailable` is required (no default)
+- `isTrue` is required (no default)
 - Set manually by Feature 4 when user reports location or tool availability
 - Contexts are dependency targets only (never sources)
 
 **Example:**
 ```typescript
 {
-  isAvailable: true,
+  isTrue: true,
   created: "2025-11-01T10:00:00Z",
   modified: "2025-11-01T10:00:00Z"
 }
 ```
 
 **Common Context Examples:**
-- `@home` - At home location
+- `atHome` - At home location
 - `@work` - At work location
-- `@computer` - Computer is available
-- `@phone` - Phone is available
+- `hasComputer` - Computer is available
+- `hasPhone` - Phone is available
 - `@errands` - Out running errands
 
 ---
@@ -992,13 +992,13 @@ None - all design decisions resolved during spec-writing-helper collaboration.
   - Updated coverage goals count to 38 ACs, 9 scenarios
   - Total acceptance criteria: 42 → 38 (removed 4 unenforceable validation ACs)
 - v1.1 (2025-11-01): Addressed spec review feedback
-  - Added Context nodes with isAvailable property (per reviewer feedback and user decision)
+  - Added Context nodes with isTrue property (per reviewer feedback and user decision)
   - Added error handling acceptance criteria (AC30-AC37) for invalid topology and property validation
   - Added performance acceptance criteria (AC38-AC39) for <2s queries at MVP scale
   - Clarified initialization script signature with inputs/outputs/exit codes
   - Enhanced singleton idempotency semantics documentation
   - Added Scenario 8 (Context-based filtering) and Scenario 9 (Invalid topology errors)
-  - Updated query patterns to include Context.isAvailable checks
+  - Updated query patterns to include Context.isTrue checks
   - Total acceptance criteria increased from 29 to 42
 - v1.0 (2025-11-01): Initial specification following spec-writing-helper collaboration
 

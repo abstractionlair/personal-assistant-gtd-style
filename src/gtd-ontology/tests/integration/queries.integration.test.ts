@@ -43,10 +43,10 @@ describe('GTD derived queries', () => {
     });
     const trueState = await createState(context.graph, { title: 'Laptop charged', isTrue: true });
     const falseState = await createState(context.graph, { title: 'Approval granted', isTrue: false });
-    const availableContext = await createContextNode(context.graph, { title: '@office', isAvailable: true });
+    const availableContext = await createContextNode(context.graph, { title: '@office', isTrue: true });
     const unavailableContext = await createContextNode(context.graph, {
       title: '@workshop',
-      isAvailable: false
+      isTrue: false
     });
 
     const readyTask = await createTask(context.graph, { title: 'Submit reimbursement' });

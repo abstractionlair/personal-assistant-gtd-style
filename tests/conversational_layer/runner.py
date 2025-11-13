@@ -19,6 +19,7 @@ from .fixtures import (
     parse_payload,
     setup_graph_from_fixture,
 )
+from .install import TestInstallation, create_test_installation
 from .interrogation import interrogate_session, QAPair, format_interrogation_for_json
 from .judge import run_judge, Verdict
 from .logging_config import get_logger, log_test_start, log_test_result
@@ -36,12 +37,86 @@ from .results_db import ResultsDB
 CLAUDE_CMD = "claude"
 MCP_LOG_PATH = Path("/Users/scottmcguire/Share1/Projects/personal-assistant-gtd-style/.data/gtd-memory/mcp-calls.log")
 
+# Global test installation instance (set during suite setup if using isolated mode)
+_test_installation: Optional[TestInstallation] = None
+
+
+def setup_test_installation(config: Config) -> None:
+    """Setup isolated test installation if enabled.
+
+    Args:
+        config: Test configuration
+
+    Raises:
+        RuntimeError: If installation setup fails
+    """
+    global _test_installation
+
+    if not config.use_isolated_env:
+        return
+
+    logger = get_logger()
+    logger.info("Setting up isolated test installation...")
+
+    try:
+        # Create installation
+        _test_installation = create_test_installation(config, force=True)
+        logger.info(f"Isolated installation created: {_test_installation.install_dir}")
+        logger.info(f"Working directory: {_test_installation.get_workspace_dir()}")
+
+        # Update config to use installation paths
+        config.system_prompt_path = _test_installation.get_system_prompt_path()
+        config.mcp_config_path = _test_installation.get_mcp_config_path()
+
+        logger.info("Test installation setup complete")
+    except Exception as e:
+        logger.error(f"Failed to setup test installation: {e}")
+        raise
+
+
+def teardown_test_installation(config: Config) -> None:
+    """Cleanup isolated test installation if enabled.
+
+    Args:
+        config: Test configuration
+    """
+    global _test_installation
+
+    if not config.use_isolated_env or _test_installation is None:
+        return
+
+    logger = get_logger()
+
+    if config.keep_test_install:
+        logger.info(f"Keeping test installation: {_test_installation.install_dir}")
+        return
+
+    logger.info("Cleaning up test installation...")
+    try:
+        _test_installation.cleanup()
+        _test_installation = None
+        logger.info("Test installation cleaned up")
+    except Exception as e:
+        logger.warning(f"Failed to cleanup test installation: {e}")
+
+
+def get_mcp_log_path() -> Path:
+    """Get MCP log path (isolated installation or default).
+
+    Returns:
+        Path to MCP log file
+    """
+    if _test_installation is not None:
+        return _test_installation.get_mcp_log_path()
+    return MCP_LOG_PATH
+
 
 def clear_mcp_log() -> None:
     """Clear MCP call log file before test execution."""
     try:
-        if MCP_LOG_PATH.exists():
-            MCP_LOG_PATH.unlink()
+        log_path = get_mcp_log_path()
+        if log_path.exists():
+            log_path.unlink()
     except Exception as e:
         logger = get_logger()
         logger.warning(f"Failed to clear MCP log: {e}")
@@ -54,8 +129,9 @@ def read_mcp_log() -> str:
         String content of MCP log file, or empty string if not found
     """
     try:
-        if MCP_LOG_PATH.exists():
-            return MCP_LOG_PATH.read_text(encoding='utf-8')
+        log_path = get_mcp_log_path()
+        if log_path.exists():
+            return log_path.read_text(encoding='utf-8')
     except Exception as e:
         logger = get_logger()
         logger.warning(f"Failed to read MCP log: {e}")
@@ -96,12 +172,18 @@ def run_claude_assistant(
 
     args.append(user_prompt)
 
+    # Use isolated working directory if available
+    cwd = None
+    if _test_installation is not None:
+        cwd = str(_test_installation.get_workspace_dir())
+
     return subprocess.run(
         args,
         capture_output=True,
         text=True,
         timeout=timeout,
         check=False,
+        cwd=cwd,
     )
 
 
@@ -451,6 +533,9 @@ def run_test_suite(config: Config) -> TestSuiteResults:
     logger.info(f"Starting test suite in {config.mode} mode")
     logger.info(f"Runs: {config.runs}, Inter-run delay: {config.inter_run_delay}s")
 
+    # Setup isolated test installation if enabled
+    setup_test_installation(config)
+
     # Load and filter test cases
     all_cases = load_test_cases(config)
     selected_cases = filter_test_cases(all_cases, config)
@@ -579,6 +664,9 @@ def run_test_suite(config: Config) -> TestSuiteResults:
             logger.debug("Closed results database")
         except Exception as e:
             logger.warning(f"Failed to close database: {e}")
+
+    # NOTE: test installation cleanup moved to main script
+    # (must happen AFTER markdown report generation)
 
     return suite_results
 

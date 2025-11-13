@@ -81,7 +81,7 @@ for (const taskId of incompleteTasks.node_ids) {
         break
       }
     } else if (depNode.type === "Context") {
-      if (!depNode.properties.isAvailable) {
+      if (!depNode.properties.isTrue) {
         allSatisfied = false
         break
       }
@@ -128,7 +128,7 @@ const nextActions = computeNextActions() // from above
 // Step 2: Get available contexts
 const availableContexts = query_nodes({
   type: "Context",
-  properties: { isAvailable: true }
+  properties: { isTrue: true }
 })
 const availableContextIds = new Set(availableContexts.node_ids)
 
@@ -170,8 +170,8 @@ return filteredActions
 - Tasks with no context dependencies are always included
 
 **Example:**
-- Task "Review code" requiring @laptop (unavailable) → **EXCLUDED**
-- Task "Call client" requiring @phone (available) → **INCLUDED**
+- Task "Review code" requiring hasLaptop (unavailable) → **EXCLUDED**
+- Task "Call client" requiring hasPhone (available) → **INCLUDED**
 - Task "Plan meeting" with no context requirements → **INCLUDED**
 
 ---
@@ -391,7 +391,7 @@ for (const projId of projects) {
       } else if (dep.type === "State") {
         if (!dep.properties.isTrue) incompleteDeps++
       } else if (dep.type === "Context") {
-        if (!dep.properties.isAvailable) incompleteDeps++
+        if (!dep.properties.isTrue) incompleteDeps++
       }
     }
 
@@ -485,7 +485,7 @@ for (const ctxId of allContexts.node_ids) {
   contextStatus.push({
     ctxId,
     name: content.content, // or extract from content
-    isAvailable: ctx.properties.isAvailable
+    isTrue: ctx.properties.isTrue
   })
 }
 
@@ -537,7 +537,7 @@ Given:
 - Task A (isComplete=false, no deps)
 - Task B (isComplete=false, depends on Task C)
 - Task C (isComplete=false)
-- Task D (isComplete=false, depends on Context @office where isAvailable=true)
+- Task D (isComplete=false, depends on Context atOffice where isTrue=true)
 
 Expected Next Actions:
 - Task A (no blockers)

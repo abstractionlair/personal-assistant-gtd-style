@@ -20,7 +20,7 @@ from .engines.interrogator import InterrogatorEngine
 from .mcp.bridge import GraphMemoryBridge
 from .mcp.log_reader import McpLogReader
 from .mcp.tool_router import ToolRouter
-from .mcp.fixtures import ensure_ontology
+from .mcp.fixtures import ensure_ontology, clean_graph
 
 
 class HarnessRunner:
@@ -47,6 +47,8 @@ class HarnessRunner:
         # Ensure ontology exists for the run
         try:
             ensure_ontology(self.mcp_bridge)
+            # Start each run with a clean graph so tests do not leak state.
+            clean_graph(self.mcp_bridge)
         except Exception as e:
             # Non-fatal: surface later if tools fail
             print(f"[WARN] ensure_ontology failed: {e}")

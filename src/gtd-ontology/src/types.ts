@@ -32,7 +32,7 @@ export interface StateProperties extends Record<string, unknown> {
 }
 
 export interface ContextProperties extends Record<string, unknown> {
-  isAvailable: boolean;
+  isTrue: boolean;
   created?: string;
   modified?: string;
 }

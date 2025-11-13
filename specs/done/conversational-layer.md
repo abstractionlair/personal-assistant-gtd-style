@@ -31,7 +31,7 @@ This is the critical integration layer that validates the project's core assumpt
   - Properties: `isComplete: boolean`, `responsibleParty?: string`
   - No `type` field - Projects are Tasks with outgoing dependencies (derived view)
 - Context node conversational patterns
-  - Properties: `isAvailable: boolean`
+  - Properties: `isTrue: boolean`
   - Context availability tracking based on user reports
 - State node creation and updates for MANUAL logic States
   - Properties: `isTrue: boolean`, `logic: "MANUAL"`
@@ -106,7 +106,7 @@ Claude maintains graph-based memory using the Graph Memory Core MCP server with 
 **Node Types:**
 - **Task**: Work items with `isComplete: boolean`, optional `responsibleParty: string`
 - **State**: World conditions with `isTrue: boolean`, `logic: "MANUAL"` (only MANUAL in Phase 1)
-- **Context**: Locations/tools with `isAvailable: boolean`
+- **Context**: Locations/tools with `isTrue: boolean`
 - **UNSPECIFIED**: Singleton marking incomplete decomposition
 
 **Connection Types:**
@@ -172,7 +172,7 @@ Input: {
     isTrue?: boolean,        // Required for State
     logic?: "MANUAL",        // Only MANUAL in Phase 1
     // For Context:
-    isAvailable?: boolean    // Required for Context
+    isTrue?: boolean    // Required for Context
   }
 }
 Returns: { node_id: string }
@@ -304,7 +304,7 @@ Idempotency: Returns existing UNSPECIFIED singleton on subsequent calls
      - Content: Description of condition
      - Note: ANY/ALL/IMMUTABLE deferred to Phase 2
    - **Context**: Location, tool, or situation
-     - Properties: `isAvailable: boolean`
+     - Properties: `isTrue: boolean`
      - User reports when context becomes available/unavailable
      - Content: Description of context
    - **DependsOn Connection**: "from depends on to"
@@ -318,7 +318,7 @@ Idempotency: Returns existing UNSPECIFIED singleton on subsequent calls
      - Not a separate node type - it's a derived view
      - Query: Find Tasks where `query_connections({ from_node_id, type: "DependsOn" })` returns results
    - **Next Actions**: Incomplete Tasks where all immediate dependencies satisfied
-     - Query: Find Tasks with `isComplete=false` AND all connected dependencies satisfied (Task.isComplete=true, State.isTrue=true, Context.isAvailable=true)
+     - Query: Find Tasks with `isComplete=false` AND all connected dependencies satisfied (Task.isComplete=true, State.isTrue=true, Context.isTrue=true)
      - Exclude: Tasks depending on UNSPECIFIED
    - **Waiting For**: Tasks delegated to external parties
      - Query: Find Tasks with `isComplete=false` AND `responsibleParty` set AND `responsibleParty !== "me"`
@@ -449,7 +449,7 @@ for (const taskId of incompleteTasks.node_ids) {
         break
       }
     } else if (depNode.type === "Context") {
-      if (!depNode.properties.isAvailable) {
+      if (!depNode.properties.isTrue) {
         allSatisfied = false
         break
       }
@@ -606,9 +606,9 @@ return stuck
 
 **AC3: Context Association**
 - When user mentions location/tool ("at office" or "needs laptop"), Claude creates or links Context
-- Context node created with `isAvailable` inferred from context (or asked)
+- Context node created with `isTrue` inferred from context (or asked)
 - DependsOn connection created from Task to Context
-- Next Actions query respects Context.isAvailable
+- Next Actions query respects Context.isTrue
 
 **AC4: Project with Subtasks Capture**
 - When user describes multi-step work, Claude creates parent Task and child Tasks
@@ -663,20 +663,20 @@ return stuck
 ### Category: Context
 
 **AC12: Context Availability Updates**
-- When user indicates location/tool change ("I'm at office now"), Claude updates Context.isAvailable=true
-- `update_node` called with properties={isAvailable: true}
+- When user indicates location/tool change ("I'm at office now"), Claude updates Context.isTrue=true
+- `update_node` called with properties={isTrue: true}
 - Next Actions query immediately reflects change (tasks requiring office now actionable)
 - Multiple Contexts can be available simultaneously
 
 **AC13: Context-Filtered Queries**
-- Next Actions query respects Context.isAvailable for tasks depending on Contexts
+- Next Actions query respects Context.isTrue for tasks depending on Contexts
 - Tasks requiring unavailable Context excluded from Next Actions
 - Tasks requiring only available Contexts (or no Contexts) included in Next Actions
 - Empty result when no Contexts available returns helpful message
 
 **AC14: Context Creation**
 - When user mentions new location/tool, Claude creates Context node
-- Properties: isAvailable inferred from user statement or asked
+- Properties: isTrue inferred from user statement or asked
 - Content: Description of context
 - Can be created standalone or during Task capture
 
@@ -690,7 +690,7 @@ return stuck
 
 **AC16: Next Actions Query**
 - Returns Tasks where isComplete=false AND all immediate dependencies satisfied
-- Checks Task dependencies: Task.isComplete, State.isTrue, Context.isAvailable
+- Checks Task dependencies: Task.isComplete, State.isTrue, Context.isTrue
 - Excludes tasks depending on UNSPECIFIED
 - Excludes tasks with external responsibleParty
 
@@ -821,7 +821,7 @@ return stuck
 
 **AC36: Context Not Yet Defined**
 - When user mentions location/tool not in graph ("I'm at the park"), Claude offers to create Context
-- "I don't have 'park' as a context. Create it?" with isAvailable=true
+- "I don't have 'park' as a context. Create it?" with isTrue=true
 - Doesn't assume Context exists without confirmation
 - User confirms creation
 
@@ -921,23 +921,23 @@ return stuck
 
 **Given:**
 - Conversation in progress
-- Context "@office" exists with id="ctx_001", isAvailable=true
-- Context "@home" exists with id="ctx_002", isAvailable=false
+- Context "atOffice" exists with id="ctx_001", isTrue=true
+- Context "atHome" exists with id="ctx_002", isTrue=false
 
 **When:**
 - User: "I need to write the Q4 report, but first I need to gather data from finance. Both need to be done at the office."
 - Claude creates Task "Gather data from finance" (task_101) with isComplete=false
 - Claude creates Task "Write Q4 report" (task_102) with isComplete=false
 - Claude creates DependsOn: task_102→task_101 (Write depends on Gather)
-- Claude creates DependsOn: task_101→ctx_001 (@office)
-- Claude creates DependsOn: task_102→ctx_001 (@office)
+- Claude creates DependsOn: task_101→ctx_001 (atOffice)
+- Claude creates DependsOn: task_102→ctx_001 (atOffice)
 
 **Then:**
 - task_102 has outgoing dependency → IS a Project (per Projects query)
 - User: "What can I work on right now?"
 - Projects query: Returns task_102 (has outgoing DependsOn)
 - Next Actions query:
-  - task_101: isComplete=false, depends on ctx_001 (isAvailable=true) → INCLUDED
+  - task_101: isComplete=false, depends on ctx_001 (isTrue=true) → INCLUDED
   - task_102: isComplete=false, depends on task_101 (isComplete=false) → EXCLUDED (unsatisfied dependency)
 - Claude responds: "You have one next action available at the office: Gather data from finance. (Write Q4 report is blocked until you gather the data first.)"
 
@@ -1026,26 +1026,26 @@ return stuck
 
 **Given:**
 - Task "Review code" (task_501, isComplete=false)
-- Context "@laptop" (ctx_101, isAvailable=false)
+- Context "hasLaptop" (ctx_101, isTrue=false)
 - DependsOn: task_501→ctx_101
 - Task "Call client" (task_502, isComplete=false)
-- Context "@phone" (ctx_102, isAvailable=true)
+- Context "hasPhone" (ctx_102, isTrue=true)
 - DependsOn: task_502→ctx_102
 - Task "Plan meeting" (task_503, isComplete=false, no dependencies)
 
 **When:**
 - User: "What can I work on right now?"
 - Next Actions query:
-  - task_501: depends on ctx_101 (isAvailable=false) → EXCLUDED
-  - task_502: depends on ctx_102 (isAvailable=true) → INCLUDED
+  - task_501: depends on ctx_101 (isTrue=false) → EXCLUDED
+  - task_502: depends on ctx_102 (isTrue=true) → INCLUDED
   - task_503: no dependencies → INCLUDED
 - Claude responds: "You can work on: 1) Call client (requires phone), 2) Plan meeting. ('Review code' requires laptop which is not available.)"
 
 **Then:**
 - User: "I just opened my laptop"
 - Claude queries: `query_nodes({ type: "Context" })` or remembers ctx_101
-- Claude calls: `update_node({ id: "ctx_101", properties: { isAvailable: true } })`
-- Claude: "Updated @laptop to available."
+- Claude calls: `update_node({ id: "ctx_101", properties: { isTrue: true } })`
+- Claude: "Updated hasLaptop to available."
 - User: "What can I work on now?"
 - Next Actions query now includes task_501 (ctx_101 now available)
 - Claude: "You can work on: 1) Review code (laptop now available), 2) Call client, 3) Plan meeting."
@@ -1096,9 +1096,9 @@ return stuck
   - (No tasks waiting on external parties)
 
   Contexts:
-  - @office: Available
-  - @laptop: Available
-  - @home: Not available
+  - atOffice: Available
+  - hasLaptop: Available
+  - atHome: Not available
   ```
 
 ---
@@ -1214,7 +1214,7 @@ This feature uses data structures defined in the GTD Ontology (Feature 3). All s
 **Properties:**
 ```typescript
 {
-  isAvailable: boolean,      // Required, current availability
+  isTrue: boolean,      // Required, current availability
   created: string,           // Automatic (ISO 8601)
   modified: string           // Automatic (ISO 8601)
 }
@@ -1223,8 +1223,8 @@ This feature uses data structures defined in the GTD Ontology (Feature 3). All s
 **Content:** Markdown description of location/tool/situation
 
 **Invariants:**
-- isAvailable is boolean
-- Set by user/AI based on user reports ("I'm at the office" → isAvailable=true)
+- isTrue is boolean
+- Set by user/AI based on user reports ("I'm at the office" → isTrue=true)
 
 **Example:**
 ```typescript
@@ -1232,18 +1232,18 @@ This feature uses data structures defined in the GTD Ontology (Feature 3). All s
   id: "ctx_001",
   type: "Context",
   properties: {
-    isAvailable: true,
+    isTrue: true,
     created: "2025-11-02T10:00:00Z",
     modified: "2025-11-02T10:00:00Z"
   },
   content_format: "markdown"
 }
 // Content:
-"@office - At the office location with access to desktop computer and meeting rooms"
+"atOffice - At the office location with access to desktop computer and meeting rooms"
 ```
 
 **Common Contexts:**
-- @home, @office, @errands, @computer, @phone, @laptop, @internet
+- atHome, atOffice, @errands, hasComputer, hasPhone, hasLaptop, @internet
 
 ---
 
@@ -1378,7 +1378,7 @@ const unspecifiedId = result.node_ids[0] // Always exactly one
   - Version: 1.2 (specs/done/graph-memory-core.md)
 
 - **GTD Ontology (Feature 3)**: Complete ✅
-  - Defines node types: Task (isComplete, responsibleParty), State (isTrue, logic), Context (isAvailable), UNSPECIFIED
+  - Defines node types: Task (isComplete, responsibleParty), State (isTrue, logic), Context (isTrue), UNSPECIFIED
   - Defines connection type: DependsOn
   - Defines query patterns for Projects, Next Actions, Waiting For
   - Version: 1.3 (specs/done/gtd-ontology.md)
@@ -1465,7 +1465,7 @@ const unspecifiedId = result.node_ids[0] // Always exactly one
   - Cannot proactively recommend actions
 - **Ambiguity resolution**: When multiple tasks match, Claude lists options
   - User must explicitly choose (no intelligent selection)
-- **Context tracking burden**: User must manually update Context.isAvailable
+- **Context tracking burden**: User must manually update Context.isTrue
   - No automatic detection of location/tool availability
 - **No task scheduling**: No date/time awareness beyond timestamps
   - "Tomorrow" in task description is just text, not scheduled date
@@ -1733,7 +1733,7 @@ If issues arise during implementation or testing, they will be tracked here.
 
 - **VISION.md** - Strategic Context
   - Core assumption: "Claude can reliably manage GTD memory through conversation"
-  - Technical requirements: Task/State/DependsOn model, Context.isAvailable
+  - Technical requirements: Task/State/DependsOn model, Context.isTrue
   - Philosophy: Derived views (Projects/Next Actions) instead of separate types
 
 - **SCOPE.md** - MVP Boundaries
@@ -1742,7 +1742,7 @@ If issues arise during implementation or testing, they will be tracked here.
   - MVP scale: 50-100 projects, 200-500 tasks
 
 - **specs/done/gtd-ontology.md** - GTD Ontology v1.3 (Feature 3)
-  - Node types: Task (isComplete, responsibleParty), State (isTrue, logic), Context (isAvailable), UNSPECIFIED
+  - Node types: Task (isComplete, responsibleParty), State (isTrue, logic), Context (isTrue), UNSPECIFIED
   - Connection type: DependsOn with topology rules
   - Query patterns: Projects, Next Actions, Waiting For
   - Property schemas and algorithms
@@ -1758,7 +1758,7 @@ If issues arise during implementation or testing, they will be tracked here.
 - **src/gtd-ontology/src/types.ts** - GTD Ontology TypeScript Types
   - TaskProperties interface: isComplete, responsibleParty
   - StateProperties interface: isTrue, logic
-  - ContextProperties interface: isAvailable
+  - ContextProperties interface: isTrue
   - GraphMemoryClient interface: MCP tool signatures
 
 ---

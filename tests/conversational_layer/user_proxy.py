@@ -46,7 +46,7 @@ class ConversationalConfig:
 
     # LLM user-proxy config
     use_llm_user: bool = True
-    user_proxy_model: str = "claude-haiku-4-5-20251001"
+    user_proxy_model: str = "claude-sonnet-4-5-20250929"
     llm_user_temperature: float = 0.7
     goal_summary: str = ""
     success_criteria: List[str] = field(default_factory=list)
@@ -71,7 +71,7 @@ class ConversationalConfig:
             validate_mcp_before_ask=data.get("validate_mcp_before_ask", True),
             require_search_first=data.get("require_search_first", True),
             use_llm_user=data.get("use_llm_user", True),
-            user_proxy_model=data.get("user_proxy_model", "claude-haiku-4-5-20251001"),
+            user_proxy_model=data.get("user_proxy_model", "claude-sonnet-4-5-20250929"),
             llm_user_temperature=data.get("llm_user_temperature", 0.7),
             goal_summary=data.get("goal_summary", ""),
             success_criteria=data.get("success_criteria", [])
@@ -631,7 +631,7 @@ Now respond naturally to whatever the assistant just said or asked."""
             args,
             capture_output=True,
             text=True,
-            timeout=30.0,  # User proxy should be quick
+            timeout=120.0,  # Increased timeout for LLM user proxy responses
             check=False
         )
 

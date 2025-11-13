@@ -148,15 +148,15 @@ Examples:
         "--judge-timeout",
         dest="judge_timeout",
         type=int,
-        default=int(os.environ.get("CLAUDE_TIMEOUT_JUDGE", os.environ.get("CLAUDE_TIMEOUT", 60))),
-        help="Timeout in seconds for judge calls (default: 60)."
+        default=int(os.environ.get("CLAUDE_TIMEOUT_JUDGE", os.environ.get("CLAUDE_TIMEOUT", 120))),
+        help="Timeout in seconds for judge calls (default: 120)."
     )
     parser.add_argument(
         "--interrogation-timeout",
         dest="interrogation_timeout",
         type=int,
-        default=60,
-        help="Timeout in seconds for each interrogation question (default: 60)."
+        default=120,
+        help="Timeout in seconds for each interrogation question (default: 120)."
     )
     parser.add_argument(
         "--cleanup-timeout",
@@ -198,6 +198,20 @@ Examples:
         dest="clean_graph_between_tests",
         action="store_true",
         help="Delete all graph nodes between tests in Live MCP mode (ensures test isolation)."
+    )
+
+    # Test environment isolation
+    parser.add_argument(
+        "--isolated-env",
+        dest="use_isolated_env",
+        action="store_true",
+        help="Use isolated test installation directory (mimics production deployment, removes dev artifacts)."
+    )
+    parser.add_argument(
+        "--keep-test-install",
+        dest="keep_test_install",
+        action="store_true",
+        help="Keep test installation after completion (default: cleanup after tests)."
     )
 
     # Output
@@ -250,6 +264,13 @@ Examples:
         type=str,
         default=None,
         help="Export path for --query export."
+    )
+    parser.add_argument(
+        "--markdown-report",
+        dest="markdown_report",
+        type=str,
+        default=None,
+        help="Generate Markdown report at specified path (default: tests/report_<run_id>_<timestamp>.md)."
     )
 
     return parser.parse_args(args)
@@ -331,12 +352,15 @@ def args_to_config(args: argparse.Namespace, root: Optional[Path] = None) -> Con
         interrogate_failures=interrogate_failures,
         interrogate_passes=interrogate_passes,
         use_refactored_cases=use_refactored,
+        use_isolated_env=args.use_isolated_env,
+        keep_test_install=args.keep_test_install,
         # Output
         log_file=Path(args.log_file),
         log_level=args.log_level,
         results_db=Path(args.results_db),
         interrogation_log=Path(args.interrogation_log) if args.interrogation_log else None,
         print_assistant_on_fail=args.print_assistant_on_fail or bool(os.environ.get("PRINT_ASSISTANT_ON_FAIL")),
+        markdown_report=args.markdown_report,
         # CLI
         suite=args.suite,
         category=args.category,

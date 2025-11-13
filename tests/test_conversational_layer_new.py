@@ -15,7 +15,7 @@ from pathlib import Path
 TESTS_DIR = Path(__file__).parent
 sys.path.insert(0, str(TESTS_DIR))
 
-from conversational_layer import cli, config, runner, logging_config, results_db
+from conversational_layer import cli, config, runner, logging_config, results_db, markdown_report
 
 
 def main() -> int:
@@ -125,6 +125,26 @@ def main() -> int:
 
     # Print summary
     runner.print_suite_summary(results, test_config)
+
+    # Generate Markdown report if requested
+    if test_config.markdown_report:
+        try:
+            db = results_db.ResultsDB(test_config.results_db)
+            report_path = markdown_report.generate_markdown_report(
+                db=db,
+                run_id=results.run_id,
+                output_path=test_config.markdown_report,
+                test_cases_path=test_config.test_cases_path
+            )
+            logger.info(f"Markdown report saved to: {report_path}")
+            print(f"\nMarkdown report saved to: {report_path}")
+            db.close()
+        except Exception as e:
+            logger.error(f"Failed to generate Markdown report: {e}", exc_info=True)
+            print(f"WARNING: Failed to generate Markdown report: {e}", file=sys.stderr)
+
+    # Cleanup isolated test installation (must happen AFTER markdown report generation)
+    runner.teardown_test_installation(test_config)
 
     # Exit with status
     if results.failed > 0:

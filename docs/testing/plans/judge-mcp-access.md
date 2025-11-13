@@ -363,7 +363,7 @@ JUDGE_SYSTEM_PROMPT = textwrap.dedent(
 
     ### Context Creation/Update
     1. Use query_nodes(type="Context") to find context
-    2. Verify isAvailable property matches assistant's claim
+    2. Verify isTrue property matches assistant's claim
     3. If task linked to context, verify DependsOn connection exists
 
     ### Query Operations (Next Actions, Projects)

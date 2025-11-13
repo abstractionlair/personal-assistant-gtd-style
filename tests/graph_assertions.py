@@ -276,17 +276,17 @@ class GraphStateAssertions:
 
         Args:
             context_pattern: Regex to identify context
-            expected: Expected isAvailable value
+            expected: Expected isTrue value
 
         Raises:
             AssertionError: If availability doesn't match
         """
         ctx_id = self.assert_context_exists(context_pattern)
         ctx = self.client.get_node(node_id=ctx_id)
-        actual = ctx.get("properties", {}).get("isAvailable")
+        actual = ctx.get("properties", {}).get("isTrue")
 
         assert actual == expected, (
-            f"Context '{context_pattern}' isAvailable: "
+            f"Context '{context_pattern}' isTrue: "
             f"expected {expected}, got {actual}"
         )
 
@@ -416,7 +416,7 @@ class GraphStateAssertions:
                 )
 
             elif dep_type == "Context":
-                dep_available = dep.get("properties", {}).get("isAvailable")
+                dep_available = dep.get("properties", {}).get("isTrue")
                 assert dep_available, (
                     f"Task {task_id} depends on unavailable context {dep_id}, "
                     f"not actionable"

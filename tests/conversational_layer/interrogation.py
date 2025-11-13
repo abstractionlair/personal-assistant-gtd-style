@@ -114,6 +114,7 @@ def resume_session_with_question(
         if config.mcp_config_path:
             args += ["--mcp-config", str(config.mcp_config_path)]
         args += [
+            "--model", "sonnet",
             "--resume", session_id,
             "--dangerously-skip-permissions",
             "--print",

@@ -177,7 +177,7 @@ function dependencyIsSatisfied(metadata: NodeMetadata): boolean {
     case 'State':
       return Boolean((metadata.properties as StateProperties).isTrue);
     case 'Context':
-      return Boolean((metadata.properties as ContextProperties).isAvailable);
+      return Boolean((metadata.properties as ContextProperties).isTrue);
     case 'UNSPECIFIED':
       return false;
     default:

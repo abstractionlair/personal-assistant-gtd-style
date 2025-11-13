@@ -6,12 +6,11 @@ from .bridge import GraphMemoryBridge
 
 
 def ensure_ontology(bridge: GraphMemoryBridge) -> None:
-    """Ensure the graph ontology exists; create it if missing."""
-    try:
-        bridge.call_tool("mcp__gtd-graph-memory__get_ontology", {})
-        return
-    except Exception:
-        pass
+    """Ensure the graph ontology exists; create it if missing.
+
+    For simplicity we always call create_ontology and treat \"already exists\"
+    errors as success. This avoids relying on get_ontology error semantics.
+    """
     create_req: Mapping[str, Any] = {
         "node_types": ["Task", "Context", "State", "UNSPECIFIED"],
         "connection_types": [
@@ -25,7 +24,14 @@ def ensure_ontology(bridge: GraphMemoryBridge) -> None:
             {"name": "DependsOn", "from_types": ["Task"], "to_types": ["UNSPECIFIED"]},
         ],
     }
-    bridge.call_tool("mcp__gtd-graph-memory__create_ontology", create_req)
+    try:
+        bridge.call_tool("mcp__gtd-graph-memory__create_ontology", create_req)
+    except Exception as exc:
+        msg = str(exc)
+        # Allow idempotent runs where ontology is already present
+        if "already exists" in msg:
+            return
+        raise
 
 
 def clean_graph(bridge: GraphMemoryBridge) -> None:
@@ -41,4 +47,3 @@ def clean_graph(bridge: GraphMemoryBridge) -> None:
         except Exception:
             # Best-effort cleanup
             pass
-

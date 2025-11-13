@@ -35,7 +35,7 @@ class AssistantEngine(RoleEngine):
             role_config=self.role_config,
             messages=messages,
             tools=tools,
-            tool_choice="required",
+            tool_choice="auto",
         )
 
         steps = 0
@@ -67,7 +67,7 @@ class AssistantEngine(RoleEngine):
                 role_config=self.role_config,
                 messages=messages,
                 tools=tools,
-                tool_choice=None,
+                tool_choice="auto",
             )
             steps += 1
 

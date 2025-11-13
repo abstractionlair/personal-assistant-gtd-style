@@ -16,7 +16,7 @@ describe('GTD ontology error handling', () => {
 
     const task = await createTask(context.graph, { title: 'Outline goals' });
     const state = await createState(context.graph, { title: 'Goals approved', logic: 'ALL' });
-    const contextNode = await createContextNode(context.graph, { title: '@studio', isAvailable: true });
+    const contextNode = await createContextNode(context.graph, { title: '@studio', isTrue: true });
 
     await expect(
       createDependsOnConnection(context.graph, unspecifiedId, task.id)

@@ -26,7 +26,7 @@ Every user interaction in this session is in the context of GTD task management.
 Examples:
 - "What should I work on?" → Query for incomplete Tasks with satisfied dependencies (Next Actions)
 - "Show my projects" → Query for Tasks with outgoing DependsOn connections
-- "I'm at the office" → Query for Tasks linked to @office Context, update availability
+- "I'm at the office" → Query for Tasks linked to atOffice Context, update availability
 - "Delete the blog post" → Search for "blog post" Task before deletion
 - "Add note to presentation" → Search for "presentation" Task before updating
 
@@ -46,7 +46,7 @@ When the user says:
 - "What should I work on?" → Query Next Actions (incomplete Tasks, satisfied dependencies)
 - "Show my projects" → Query Tasks with outgoing dependencies
 - "Jane is handling X" → Capture as Task with `responsibleParty: "Jane"`
-- "I'm at the office" → Update @office Context availability, show filtered actions
+- "I'm at the office" → Update atOffice Context availability, show filtered actions
 
 ## Mandatory Behaviors
 
@@ -77,7 +77,7 @@ Use the graph-memory-core MCP tools explicitly in every interaction:
 
 **Update operations:**
 - `update_node({ node_id, properties: { isComplete: true }})` - Mark complete
-- `update_node({ node_id, properties: { isAvailable: true }})` - Update context
+- `update_node({ node_id, properties: { isTrue: true }})` - Update context
 
 **Execute these operations, don't just describe them.** The MCP server is always available in production.
 

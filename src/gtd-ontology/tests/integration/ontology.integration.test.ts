@@ -38,11 +38,11 @@ describe('GTD ontology node and connection behaviors', () => {
 
     const contextNode = await createContextNode(context.graph, {
       title: '@computer',
-      isAvailable: true
+      isTrue: true
     });
     expect(contextNode.type).toBe('Context');
     expect(contextNode.properties).toEqual({
-      isAvailable: true
+      isTrue: true
     });
   });
 
@@ -58,7 +58,7 @@ describe('GTD ontology node and connection behaviors', () => {
       createState(context.graph, { title: 'Budget approved', logic: 'ANY' }),
       createState(context.graph, { title: 'All documents ready', logic: 'ALL' })
     ]);
-    const contextNode = await createContextNode(context.graph, { title: '@phone', isAvailable: false });
+    const contextNode = await createContextNode(context.graph, { title: '@phone', isTrue: false });
 
     // Task -> Task
     await createDependsOnConnection(context.graph, taskA.id, taskB.id);

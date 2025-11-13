@@ -1,8 +1,8 @@
 # Implementation Plan: API-Driven, Multi-Provider Conversational Test Harness
 
-Status: Approved
+Status: Approved (in progress)
 Priority: High
-Last Updated: 2025-11-12
+Last Updated: 2025-11-13
 
 ## Objectives
 
@@ -12,6 +12,12 @@ Last Updated: 2025-11-12
 - Deterministic first pass: run all tests at temperature=0 (and top_p=1 where applicable); only later explore t > 0.
 - Build a parallel system (do not incrementally migrate the existing CLI runner) so current flow remains intact during development.
 - Convert Claude Skill-dependent GTD instructions into a provider-agnostic system prompt; introduce optional caching hooks.
+
+## Current Implementation Status (Harness + Gateway)
+
+- Harness runner (`tests/harness_api/runner.py`) is wired to the `mcp-tool-gateway` Python client; when `gateway.base_url` is set, all MCP calls go through the HTTP gateway.
+- Ontology bootstrap now uses `create_ontology` via the gateway and treats \"already exists\" errors as success; each harness run starts with a clean graph (`clean_graph`) for isolation.
+- OpenAI adapter exposes canonical MCP tools with JSON Schemas; a simple capture test (`capture_simple_task`) now passes end-to-end at `t=0` using OpenAI → gateway → graph-memory MCP.
 
 ## Out of Scope (Now)
 
@@ -130,7 +136,12 @@ Models differ in how they plan and call tools (e.g., search-first discipline, ar
 
 ## Next Steps
 
-- Proceed with Milestone 1 scaffolding under `tests/harness_api/` and prepare canonical prompts/config with deterministic defaults (temperature=0).
-- Implement stub execution mode (per-tool canned responses) to unblock harness development without live MCP servers while the real transport is under construction.
-- Provide `tests/harness_api/mcp/setup_env.sh` to automate `npm install && npm run build` before launching the MCP server.
-- Next milestone: wire the real MCP transport (Node server lifecycle + stdio RPC bridge) so the harness can operate the live graph before we run full suites. See `tests/harness_api/mcp/rpc_plan.md` for the transport design (McpStdioClient, log tool, cleanup steps).
+- Gateway integration baseline is complete:
+  - `external/mcp-tool-gateway` hosts the generic MCP bridge + clients
+  - HTTP endpoints (`/call_tool`, `/tools`, `/logs`, `/health`) are implemented and tested
+  - Harness can talk to MCP via `gateway_base_url` using the gateway's Python client (preferred) or CLI fallback.
+- Proceed with harness refinement under `tests/harness_api/` using the gateway as the default transport:
+  - Tighten tool schemas (optionally from gateway `/tools`/`/tools/openai`)
+  - Improve prompts and role policies for consistent tool use
+  - Add graph cleanup between tests where needed.
+- Defer provider fast paths (OpenAI Agents, xAI remote MCP tools) to `docs/testing/plans/provider-fast-paths-todo.md`.

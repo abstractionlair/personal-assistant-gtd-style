@@ -260,7 +260,7 @@ export class GraphMemoryMcpServer {
   private createCreateNodeTool(): ToolDefinition<CreateNodeRequest, CreateNodeResult> {
     return {
       name: 'create_node',
-      description: 'Create a GTD Task, Context, State, or UNSPECIFIED node in the graph. Use for capturing tasks ("Call dentist"), defining contexts (@office, @phone), or tracking states. This is how you persist GTD items.',
+      description: 'Create a GTD Task, Context, State, or UNSPECIFIED node in the graph. Use for capturing tasks ("Call dentist"), defining contexts (@office, @phone), or tracking states. This is how you persist GTD items.\n\nProperty usage:\n- Task: {isComplete: boolean} for task status. For delegated tasks, use {responsibleParty: "person-name"} NOT assignedTo. Example: {type: "Task", content: "Logo design", properties: {isComplete: false, responsibleParty: "Jane"}}\n- Context: {isTrue: boolean} for availability. Example: {type: "Context", content: "atOffice", properties: {isTrue: false}}\n- State: {isTrue: boolean, logic: "ANY"|"ALL"} for condition tracking. Example: {type: "State", content: "Weather is good", properties: {isTrue: true, logic: "ANY"}}',
       inputSchema: createNodeInputShape,
       handler: this.wrapHandlerWithLogging('create_node', async (input: CreateNodeRequest) => {
         try {
@@ -305,7 +305,7 @@ export class GraphMemoryMcpServer {
   private createUpdateNodeTool(): ToolDefinition<UpdateNodeRequest, void> {
     return {
       name: 'update_node',
-      description: 'Update a GTD Task, Context, or State. Use when user marks tasks complete (isComplete: true), adds notes, changes context availability (isAvailable: true), or updates properties. ALWAYS search for existing node first, never create new.',
+      description: 'Update a GTD Task, Context, or State. Use when user marks tasks complete (isComplete: true), adds notes, changes context availability (isTrue: true), or updates properties. ALWAYS search for existing node first, never create new.',
       inputSchema: updateNodeInputShape,
       handler: this.wrapHandlerWithLogging('update_node', async (input: UpdateNodeRequest) => {
         try {

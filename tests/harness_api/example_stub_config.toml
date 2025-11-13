@@ -1,0 +1,24 @@
+# Example harness config using stub tool responses. Useful for validating harness plumbing
+# without starting the MCP server. Replace with real provider/model info as needed.
+
+[roles]
+[roles.assistant]
+provider = "stub"
+model = "assistant"
+
+[roles.user_proxy]
+provider = "stub"
+model = "user"
+
+[roles.judge]
+provider = "stub"
+model = "judge"
+
+[roles.interrogator]
+provider = "stub"
+model = "interrogator"
+
+[stub_tool_responses]
+"mcp__gtd-graph-memory__query_nodes" = { "nodes" = [] }
+"mcp__gtd-graph-memory__search_content" = { "matches" = [] }
+"mcp__gtd-graph-memory__create_node" = { "node_id" = "stub-node-1" }

@@ -29,16 +29,16 @@ Each pattern shows:
 **User:** "Log a reminder to print the quarterly packets when I'm at the office."
 
 **Plan:**
-- Ensure @office context exists
+- Ensure atOffice context exists
 - Create task
-- Connect task to @office
+- Connect task to atOffice
 
 **Tool operations:**
 ```
 create_node({
   "type": "Context",
   "content": "Tasks that require being at the office",
-  "properties": { "isAvailable": true }
+  "properties": { "isTrue": true }
 })
 
 create_node({
@@ -54,7 +54,7 @@ create_connection({
 })
 ```
 
-**Response:** Captured task: Print the quarterly packets when @office is available.
+**Response:** Captured task: Print the quarterly packets when atOffice is available.
 
 ---
 
@@ -280,17 +280,17 @@ create_node({
 **User:** "Add a reminder to call the dentist."
 
 **Plan:**
-- Infer @phone context (obvious)
-- Ensure @phone exists
+- Infer hasPhone context (obvious)
+- Ensure hasPhone exists
 - Create task
-- Connect task to @phone
+- Connect task to hasPhone
 
 **Tool operations:**
 ```
 create_node({
   "type": "Context",
   "content": "Tasks that require a phone",
-  "properties": { "isAvailable": true }
+  "properties": { "isTrue": true }
 })
 
 create_node({
@@ -306,7 +306,7 @@ create_connection({
 })
 ```
 
-**Response:** Captured task: I inferred the @phone context so the reminder stays linked to phone availability.
+**Response:** Captured task: I inferred the hasPhone context so the reminder stays linked to phone availability.
 
 **Key:** Infer obvious contexts but state the inference. User can override if wrong.
 
@@ -412,7 +412,7 @@ get_connected_nodes({
 # For each dependency:
 # - If Task: check isComplete
 # - If State: check isTrue
-# - If Context: check isAvailable
+# - If Context: check isTrue
 # - If UNSPECIFIED: exclude task
 ```
 
@@ -487,7 +487,7 @@ Waiting For items delegated to others:
 **User:** "I'm at home with my laptop. What can I do?"
 
 **Plan:**
-- Detect @home and @laptop contexts
+- Detect atHome and hasLaptop contexts
 - Filter actionable tasks matching available contexts
 
 **Tool operations:**
@@ -505,13 +505,13 @@ get_connected_nodes({
 
 query_nodes({
   "type": "Context",
-  "properties": { "isAvailable": true }
+  "properties": { "isTrue": true }
 })
 ```
 
 **Response:**
 Filtered next actions:
-- Focus on @home work while @laptop contexts remain available.
+- Focus on atHome work while hasLaptop contexts remain available.
 - Capture new tasks if nothing fits these available contexts.
 
 **Key:** Respect context availability. Tasks requiring unavailable contexts are not actionable.
@@ -702,22 +702,22 @@ create_connection({
 **User:** "I just left the office."
 
 **Plan:**
-- Mark @office unavailable
+- Mark atOffice unavailable
 
 **Tool operations:**
 ```
 query_nodes({
   "type": "Context"
 })
-# Find @office
+# Find atOffice
 
 update_node({
   "node_id": "<office_context_id>",
-  "properties": { "isAvailable": false }
+  "properties": { "isTrue": false }
 })
 ```
 
-**Response:** Next actions requiring @office will be hidden until you return.
+**Response:** Next actions requiring atOffice will be hidden until you return.
 
 **Key:** Context changes immediately affect Next Actions query.
 
@@ -905,7 +905,7 @@ delete_node({
 - Context doesn't exist
 - Offer to create
 
-**Response:** I don't have a context named @makerspace. Should I create it with isAvailable=true?
+**Response:** I don't have a context named @makerspace. Should I create it with isTrue=true?
 
 **Key:** Offer to create, wait for confirmation. Don't assume.
 
@@ -913,9 +913,9 @@ delete_node({
 
 ## Inference Principles Summary
 
-1. **Infer obvious contexts:** phone calls → @phone, office work → @office
+1. **Infer obvious contexts:** phone calls → hasPhone, office work → atOffice
 2. **Ask when ambiguous:** "work on project" → which task?
-3. **State inferences explicitly:** "I inferred @phone" lets user override
+3. **State inferences explicitly:** "I inferred hasPhone" lets user override
 4. **Balance helpfulness with accuracy:** Don't overwhelm with questions, but don't guess critical details
 5. **React to availability changes:** When context becomes available, suggest affected tasks
 6. **Document duplicates carefully:** Show similarity reasoning, wait for user decision

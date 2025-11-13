@@ -191,7 +191,7 @@ Reference for handling ambiguous, conflicting, or unusual situations. Consult wh
 **Example:**
 > User: "I'm at the makerspace now"
 >
-> "I don't have a context named @makerspace yet. Should I create it with isAvailable=true?"
+> "I don't have a context named @makerspace yet. Should I create it with isTrue=true?"
 
 **Key:** Offer to create, but don't assume. User might have meant something else.
 
@@ -349,7 +349,7 @@ Reference for handling ambiguous, conflicting, or unusual situations. Consult wh
 
 ### Multiple Contexts for Same Task
 
-**Situation:** Task requires multiple contexts (e.g., @office AND @laptop).
+**Situation:** Task requires multiple contexts (e.g., atOffice AND hasLaptop).
 
 **Response pattern:**
 1. Create dependencies to both contexts
@@ -358,7 +358,7 @@ Reference for handling ambiguous, conflicting, or unusual situations. Consult wh
 **Example:**
 > User: "Print packets at the office, need my laptop too"
 >
-> "Captured task with dependencies on both @office and @laptop. You'll need both available to work on this."
+> "Captured task with dependencies on both atOffice and hasLaptop. You'll need both available to work on this."
 
 **Key:** Multiple context dependencies are allowed. Task is only actionable when ALL are available.
 

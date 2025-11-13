@@ -81,7 +81,7 @@ describe('GTD ontology performance characteristics', () => {
       contexts.push(
         await createContextNode(context.graph, {
           title: `@context-${i}`,
-          isAvailable: i % 3 !== 0
+          isTrue: i % 3 !== 0
         })
       );
     }

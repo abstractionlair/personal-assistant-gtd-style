@@ -19,7 +19,7 @@ export interface StateInput {
 
 export interface ContextInput {
   title?: string;
-  isAvailable?: boolean;
+  isTrue?: boolean;
 }
 
 export async function createTask(
@@ -70,7 +70,7 @@ export async function createContextNode(
     encoding: 'utf-8',
     format: 'text/plain',
     properties: {
-      isAvailable: input.isAvailable ?? true
+      isTrue: input.isTrue ?? true
     }
   };
 

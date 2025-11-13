@@ -358,7 +358,7 @@ The goal is accomplishing the user's intent, not minimizing conversation turns.
 - NOT EFFECTIVE: Looks for "type: PROJECT" property (doesn't exist in data model)
 
 **Next Actions Query**:
-- EFFECTIVE: Checks all dependencies satisfied (Task.isComplete, State.isTrue, Context.isAvailable)
+- EFFECTIVE: Checks all dependencies satisfied (Task.isComplete, State.isTrue, Context.isTrue)
 - NOT EFFECTIVE: Returns incomplete Tasks without checking dependencies
 
 **Stuck Projects Query** (>14 days no activity):

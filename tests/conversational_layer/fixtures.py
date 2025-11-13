@@ -68,73 +68,51 @@ def clean_graph_state(config: Config) -> bool:
         True if cleanup succeeded, False otherwise
 
     Notes:
-        - Requires MCP config path to be set
-        - Deletes all nodes (connections cascade automatically)
-        - Logs warnings on failure but doesn't raise exceptions
+        - Uses brute force filesystem deletion (no model involved)
+        - Deletes the entire graph database directory
+        - Much faster and more reliable than model-based cleanup
+        - Reads actual data location from MCP config's BASE_PATH
     """
     logger = get_logger()
 
-    if not config.mcp_config_path:
-        logger.error("MCP config path is required for graph cleanup")
-        return False  # Cannot clean without MCP config
+    # Read the MCP config to get the actual BASE_PATH
+    graph_data_dir = None
 
-    logger.info("Cleaning graph state...")
+    if config.mcp_config_path and config.mcp_config_path.exists():
+        try:
+            with open(config.mcp_config_path, 'r', encoding='utf-8') as f:
+                mcp_config = json.load(f)
 
-    cleanup_prompt = textwrap.dedent("""
-        Delete all nodes in the graph to prepare for the next test.
+            # Extract BASE_PATH from gtd-graph-memory server config
+            if "mcpServers" in mcp_config and "gtd-graph-memory" in mcp_config["mcpServers"]:
+                server_config = mcp_config["mcpServers"]["gtd-graph-memory"]
+                if "env" in server_config and "BASE_PATH" in server_config["env"]:
+                    base_path = Path(server_config["env"]["BASE_PATH"])
+                    graph_data_dir = base_path / "gtd-memory" / "_system"
+                    logger.debug(f"Using BASE_PATH from MCP config: {base_path}")
+        except Exception as e:
+            logger.warning(f"Failed to read MCP config for BASE_PATH: {e}")
 
-        Steps:
-        1. Query all nodes (no filters)
-        2. Delete each node (connections will cascade automatically)
-        3. Confirm the graph is empty
+    # Fall back to default location if not found in config
+    if graph_data_dir is None:
+        project_root = config.test_cases_path.parent.parent
+        graph_data_dir = project_root / ".data" / "gtd-memory" / "_system"
+        logger.debug(f"Using default graph location: {graph_data_dir}")
 
-        Be thorough - we need a completely clean slate for test isolation.
-    """).strip()
+    if not graph_data_dir.exists():
+        logger.info(f"Graph data directory does not exist: {graph_data_dir}")
+        return True  # Nothing to clean
 
-    cleanup_system = textwrap.dedent("""
-        You are a graph cleanup utility. Your job is to delete all nodes in the graph.
-        Use query_nodes with no filters to find all nodes, then delete each one.
-        Be concise - just do the cleanup and confirm when done.
-    """).strip()
+    logger.info(f"Cleaning graph state: {graph_data_dir}")
 
     try:
-        args = [CLAUDE_CMD]
-        if config.mcp_config_path:
-            args += ["--mcp-config", str(config.mcp_config_path)]
-        args += [
-            "--dangerously-skip-permissions",
-            "--print",
-            "--output-format", "json",
-            "--system-prompt", cleanup_system,
-            cleanup_prompt
-        ]
-
-        result = subprocess.run(
-            args,
-            capture_output=True,
-            text=True,
-            timeout=config.cleanup_timeout,
-            check=False,
-        )
-
-        if result.returncode != 0:
-            logger.warning(f"Graph cleanup failed: {result.stderr.strip()}")
-            return False
-
-        payload = parse_payload(result.stdout)
-        if payload is None:
-            logger.warning("Graph cleanup returned non-JSON output")
-            return False
-
-        logger.info("Graph cleanup completed successfully")
+        import shutil
+        shutil.rmtree(graph_data_dir)
+        logger.info("Graph cleanup completed successfully (brute force)")
         return True
 
-    except subprocess.TimeoutExpired:
-        logger.error(f"Graph cleanup timed out after {config.cleanup_timeout}s")
-        return False
     except Exception as e:
-        error_dict = handle_subprocess_error(e, "clean_graph_state")
-        logger.error(f"Graph cleanup error: {error_dict['reason']}")
+        logger.error(f"Graph cleanup error: {e}")
         return False
 
 
@@ -164,7 +142,7 @@ def setup_graph_from_fixture(
             "contexts": [
                 {
                     "content": "@office",
-                    "isAvailable": true
+                    "isTrue": true
                 }
             ],
             "states": [
@@ -209,7 +187,7 @@ def setup_graph_from_fixture(
     # Contexts
     for context in fixture.get("contexts", []):
         content = context.get("content", "")
-        is_available = context.get("isAvailable", False)
+        is_available = context.get("isTrue", False)
         avail_str = "available" if is_available else "unavailable"
         setup_instructions.append(f"Create context {content} (currently {avail_str})")
 

@@ -4,28 +4,80 @@
     "category": "Capture",
     "prompt": "I need to call the dentist tomorrow to schedule a cleaning.",
     "expected_behavior": "Creates incomplete task, confirms to user",
-    "judge_scenario": "User wants to capture a simple task"
+    "judge_scenario": "User wants to capture a simple task",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_simple_task' task successfully",
+      "success_criteria": [
+        "Creates incomplete task, confirms to user"
+      ]
+    }
   },
   {
     "name": "capture_task_with_context",
     "category": "Capture",
     "prompt": "Log a reminder to print the quarterly packets when I'm at the office.",
     "expected_behavior": "Creates task, creates/reuses @office context, links them",
-    "judge_scenario": "User wants task associated with specific location"
+    "judge_scenario": "User wants task associated with specific location",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_task_with_context' task successfully",
+      "success_criteria": [
+        "Creates task, creates/reuses @office context, links them"
+      ]
+    }
   },
   {
     "name": "capture_task_with_dependency",
     "category": "Capture",
     "prompt": "I need to send the board update, but only after I finish the financial summary.",
     "expected_behavior": "Creates both tasks with correct dependency direction",
-    "judge_scenario": "User describes sequential work dependency"
+    "judge_scenario": "User describes sequential work dependency",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_task_with_dependency' task successfully",
+      "success_criteria": [
+        "Creates both tasks with correct dependency direction"
+      ]
+    }
   },
   {
     "name": "capture_task_with_unspecified",
     "category": "Capture",
     "prompt": "I'm not sure what the next step is for the marketing launch, but something needs to happen.",
     "expected_behavior": "Creates task linked to UNSPECIFIED, explains blockage",
-    "judge_scenario": "User mentions vague work without clear decomposition"
+    "judge_scenario": "User mentions vague work without clear decomposition",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_task_with_unspecified' task successfully",
+      "success_criteria": [
+        "Creates task linked to UNSPECIFIED, explains blockage"
+      ]
+    }
   },
   {
     "name": "capture_duplicate_detection",
@@ -47,7 +99,7 @@
       "validate_mcp_before_ask": true,
       "require_search_first": true,
       "use_llm_user": true,
-      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
       "llm_user_temperature": 0.7,
       "goal_summary": "Create a new task for finalizing the vendor contract (separate from the existing review task)",
       "success_criteria": [
@@ -61,63 +113,180 @@
     "category": "Capture",
     "prompt": "I need to prepare the investor packet: gather metrics, draft the narrative, and polish the slides.",
     "expected_behavior": "Creates parent and child tasks with correct dependencies",
-    "judge_scenario": "User describes multi-step project"
+    "judge_scenario": "User describes multi-step project",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_project_with_subtasks' task successfully",
+      "success_criteria": [
+        "Creates parent and child tasks with correct dependencies"
+      ]
+    }
   },
   {
     "name": "capture_delegated_task",
     "category": "Capture",
     "prompt": "Log that Jane is handling the new logo design.",
     "expected_behavior": "Creates delegated task with responsibleParty=Jane",
-    "judge_scenario": "User delegates task to external party"
+    "judge_scenario": "User delegates task to external party",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_delegated_task' task successfully",
+      "success_criteria": [
+        "Creates delegated task with responsibleParty=Jane"
+      ]
+    }
   },
   {
     "name": "capture_manual_state",
     "category": "Capture",
     "prompt": "Track that the conference room projector is working right now.",
     "expected_behavior": "Creates MANUAL state set to true, explains tracking",
-    "judge_scenario": "User reports environmental condition"
+    "judge_scenario": "User reports environmental condition",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_manual_state' task successfully",
+      "success_criteria": [
+        "Creates MANUAL state set to true, explains tracking"
+      ]
+    }
   },
   {
     "name": "capture_infer_obvious_context",
     "category": "Capture",
     "prompt": "Add a reminder to call the dentist.",
     "expected_behavior": "Creates task, infers @phone context, links them",
-    "judge_scenario": "User mentions task with obvious context implication"
+    "judge_scenario": "User mentions task with obvious context implication",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'capture_infer_obvious_context' task successfully",
+      "success_criteria": [
+        "Creates task, infers @phone context, links them"
+      ]
+    }
   },
   {
     "name": "query_next_actions",
     "category": "Query",
     "prompt": "What should I work on next?",
     "expected_behavior": "Returns actionable tasks only",
-    "judge_scenario": "User asks what to work on"
+    "judge_scenario": "User asks what to work on",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_next_actions' task successfully",
+      "success_criteria": [
+        "Returns actionable tasks only"
+      ]
+    }
   },
   {
     "name": "query_projects",
     "category": "Query",
     "prompt": "Show me my active projects.",
     "expected_behavior": "Lists projects with dependency status",
-    "judge_scenario": "User wants overview of multi-step work"
+    "judge_scenario": "User wants overview of multi-step work",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_projects' task successfully",
+      "success_criteria": [
+        "Lists projects with dependency status"
+      ]
+    }
   },
   {
     "name": "query_waiting_for",
     "category": "Query",
     "prompt": "What am I waiting on from other people?",
     "expected_behavior": "Lists delegated tasks with responsible parties",
-    "judge_scenario": "User wants to see externally-blocked work"
+    "judge_scenario": "User wants to see externally-blocked work",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_waiting_for' task successfully",
+      "success_criteria": [
+        "Lists delegated tasks with responsible parties"
+      ]
+    }
   },
   {
     "name": "query_context_filtered",
     "category": "Query",
     "prompt": "What can I do at the office right now?",
     "expected_behavior": "Returns tasks requiring @office context when available",
-    "judge_scenario": "User asks for context-specific work"
+    "judge_scenario": "User asks for context-specific work",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_context_filtered' task successfully",
+      "success_criteria": [
+        "Returns tasks requiring @office context when available"
+      ]
+    }
   },
   {
     "name": "query_stuck_projects",
     "category": "Query",
     "prompt": "Which projects haven't made progress lately?",
     "expected_behavior": "Identifies projects with no activity in 14+ days",
-    "judge_scenario": "User wants to identify stalled work"
+    "judge_scenario": "User wants to identify stalled work",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_stuck_projects' task successfully",
+      "success_criteria": [
+        "Identifies projects with no activity in 14+ days"
+      ]
+    }
   },
   {
     "name": "query_specific_task",
@@ -132,6 +301,19 @@
           "isComplete": false
         }
       ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_specific_task' task successfully",
+      "success_criteria": [
+        "Finds matching task, shows details and dependencies"
+      ]
     }
   },
   {
@@ -139,7 +321,20 @@
     "category": "Query",
     "prompt": "Show me my weekly review.",
     "expected_behavior": "Presents completed work, active projects, stuck projects, next actions, waiting for, contexts",
-    "judge_scenario": "User requests comprehensive status overview"
+    "judge_scenario": "User requests comprehensive status overview",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'query_weekly_review' task successfully",
+      "success_criteria": [
+        "Presents completed work, active projects, stuck projects, next actions, waiting for, contexts"
+      ]
+    }
   },
   {
     "name": "update_mark_complete",
@@ -153,6 +348,19 @@
           "content": "File quarterly taxes",
           "isComplete": false
         }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'update_mark_complete' task successfully",
+      "success_criteria": [
+        "Marks task complete"
       ]
     }
   },
@@ -169,6 +377,19 @@
           "isComplete": false
         }
       ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'update_add_details' task successfully",
+      "success_criteria": [
+        "Appends note to task content"
+      ]
     }
   },
   {
@@ -180,8 +401,8 @@
     "graph_setup": {
       "contexts": [
         {
-          "content": "@office",
-          "isAvailable": false
+          "content": "atOffice",
+          "isTrue": false
         }
       ],
       "tasks": [
@@ -189,9 +410,22 @@
           "content": "Print quarterly packets",
           "isComplete": false,
           "depends_on": [
-            "@office"
+            "atOffice"
           ]
         }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'update_context_availability' task successfully",
+      "success_criteria": [
+        "Sets @office context to available"
       ]
     }
   },
@@ -217,6 +451,19 @@
           ]
         }
       ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'update_manual_state' task successfully",
+      "success_criteria": [
+        "Updates weather state to true"
+      ]
     }
   },
   {
@@ -232,6 +479,19 @@
           "isComplete": false
         }
       ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'update_add_dependency' task successfully",
+      "success_criteria": [
+        "Adds new dependency to existing task"
+      ]
     }
   },
   {
@@ -246,6 +506,19 @@
           "content": "Old blog post idea",
           "isComplete": false
         }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'delete_simple' task successfully",
+      "success_criteria": [
+        "Deletes task without dependencies"
       ]
     }
   },
@@ -277,7 +550,7 @@
       "validate_mcp_before_ask": true,
       "require_search_first": false,
       "use_llm_user": true,
-      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
       "llm_user_temperature": 0.7,
       "goal_summary": "Delete the old onboarding checklist (user will confirm cascade deletion if warned)",
       "success_criteria": [
@@ -293,7 +566,20 @@
     "category": "Edge",
     "prompt": "Any next actions for @studio?",
     "expected_behavior": "Handles empty results gracefully",
-    "judge_scenario": "User queries context with no matching work"
+    "judge_scenario": "User queries context with no matching work",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'edge_empty_results' task successfully",
+      "success_criteria": [
+        "Handles empty results gracefully"
+      ]
+    }
   },
   {
     "name": "edge_ambiguous_reference",
@@ -323,7 +609,7 @@
       "validate_mcp_before_ask": true,
       "require_search_first": true,
       "use_llm_user": true,
-      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
       "llm_user_temperature": 0.7,
       "goal_summary": "Mark the marketing proposal task as complete",
       "success_criteria": [
@@ -352,7 +638,7 @@
       "validate_mcp_before_ask": true,
       "require_search_first": false,
       "use_llm_user": true,
-      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
       "llm_user_temperature": 0.7,
       "goal_summary": "Mark the website redesign task as complete (user changed mind about adding subtasks)",
       "success_criteria": [
@@ -373,7 +659,7 @@
       "validate_mcp_before_ask": true,
       "require_search_first": true,
       "use_llm_user": true,
-      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
       "llm_user_temperature": 0.7,
       "goal_summary": "Create the @park context so I can track tasks I can do at the park",
       "success_criteria": [
@@ -423,12 +709,59 @@
       "validate_mcp_before_ask": true,
       "require_search_first": true,
       "use_llm_user": true,
-      "user_proxy_model": "claude-haiku-4-5-20251001",
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
       "llm_user_temperature": 0.7,
-      "goal_summary": "Get next actions for the website redesign project",
+      "goal_summary": "Get next actions for a specific project after clarifying which one",
       "success_criteria": [
-        "Assistant identifies next actions for website redesign project",
-        "Response mentions 'Design new homepage' as a next action"
+        "Assistant searches for projects first",
+        "Assistant asks which project to work on",
+        "After user clarifies, assistant provides next actions for that project"
+      ]
+    }
+  },
+  {
+    "name": "edge_user_claim_mismatch",
+    "category": "Edge",
+    "prompt": "I need to work on my website redesign project. What are the next actions?",
+    "expected_behavior": "Tactfully points out that no website project exists in the system, only mobile app project. Offers to show available projects or help capture the website project.",
+    "judge_scenario": "User makes incorrect claim about what's in their task list - assistant should tactfully correct the mismatch",
+    "graph_setup": {
+      "tasks": [
+        {
+          "content": "Mobile app launch",
+          "isComplete": false,
+          "id": "mobile",
+          "depends_on": []
+        },
+        {
+          "content": "Implement login flow",
+          "isComplete": false,
+          "depends_on": [
+            "mobile"
+          ]
+        },
+        {
+          "content": "Design user profile screen",
+          "isComplete": false,
+          "depends_on": [
+            "mobile"
+          ]
+        }
+      ]
+    },
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": true,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "User incorrectly claims to have a website project",
+      "success_criteria": [
+        "Assistant searches the graph first",
+        "Assistant tactfully points out the mismatch",
+        "Assistant offers to help with what actually exists or capture new project"
       ]
     }
   },
@@ -439,7 +772,20 @@
     "assistant_override": "I've deleted the 'design mockups' task. The 'review designs' task that depended on it is now orphaned.",
     "expected_behavior": "Should have warned about dependency before deleting",
     "expected_pass": false,
-    "judge_scenario": "Deletes without warning about dependencies (should fail SAFE)"
+    "judge_scenario": "Deletes without warning about dependencies (should fail SAFE)",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'judge_negative_unsafe_delete' task successfully",
+      "success_criteria": [
+        "Should have warned about dependency before deleting"
+      ]
+    }
   },
   {
     "name": "judge_negative_ambiguous_completion",
@@ -448,7 +794,20 @@
     "assistant_override": "I've marked the Q4 financial report as complete.",
     "expected_behavior": "Should ask which report when multiple exist",
     "expected_pass": false,
-    "judge_scenario": "Acts on ambiguous reference without clarifying (should fail SAFE)"
+    "judge_scenario": "Acts on ambiguous reference without clarifying (should fail SAFE)",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'judge_negative_ambiguous_completion' task successfully",
+      "success_criteria": [
+        "Should ask which report when multiple exist"
+      ]
+    }
   },
   {
     "name": "judge_negative_unclear_response",
@@ -457,7 +816,20 @@
     "assistant_override": "Task node query executed with filters: {isComplete: false, deps: satisfied}. Result set: [task_901, task_1057, task_2234]. Dependency graph validated.",
     "expected_behavior": "Should provide clear, user-friendly response",
     "expected_pass": false,
-    "judge_scenario": "Provides technical jargon instead of helpful response (should fail CLEAR)"
+    "judge_scenario": "Provides technical jargon instead of helpful response (should fail CLEAR)",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'judge_negative_unclear_response' task successfully",
+      "success_criteria": [
+        "Should provide clear, user-friendly response"
+      ]
+    }
   },
   {
     "name": "judge_negative_not_effective",
@@ -466,6 +838,19 @@
     "assistant_override": "That's great! Quarterly reports are important for tracking progress. Make sure to share it with your team.",
     "expected_behavior": "Should mark task complete in graph",
     "expected_pass": false,
-    "judge_scenario": "Acknowledges but doesn't actually complete task (should fail EFFECTIVE)"
+    "judge_scenario": "Acknowledges but doesn't actually complete task (should fail EFFECTIVE)",
+    "conversational": {
+      "enabled": true,
+      "max_turns": 2,
+      "validate_mcp_before_ask": false,
+      "require_search_first": false,
+      "use_llm_user": true,
+      "user_proxy_model": "claude-sonnet-4-5-20250929",
+      "llm_user_temperature": 0.7,
+      "goal_summary": "Complete the 'judge_negative_not_effective' task successfully",
+      "success_criteria": [
+        "Should mark task complete in graph"
+      ]
+    }
   }
 ]

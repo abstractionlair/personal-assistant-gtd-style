@@ -1,0 +1,107 @@
+Using full system prompt: /Volumes/Share 1/Projects/personal-assistant-gtd-style/src/conversational-layer/system-prompt-full.md
+Mode: Live MCP
+Cleaning graph before tests...
+Running test 1: capture_simple_task (Capture)
+  Judge: PASS (expected PASS) - The assistant successfully created a Task node in the GTD system with appropriate properties (isComplete: false, created timestamp), accomplishing the user's goal of capturing the task. No destructive actions were involved, so safety isn't a concern. The response is clear and confirms what was done in friendly, concise language.
+  Cleaning graph before next test...
+Running test 2: capture_task_with_context (Capture)
+  Judge: PASS (expected PASS) - The assistant correctly created the @office context, created the task 'Print the quarterly packets', and linked them via DependsOn connection. The user's goal of logging a location-based reminder was fully accomplished. No destructive actions required confirmation, and the response clearly communicated what was created with specific IDs.
+  Cleaning graph before next test...
+Running test 3: capture_task_with_dependency (Capture)
+  Judge: PASS (expected PASS) - The assistant correctly created both tasks and established the dependency relationship (board update depends on financial summary). It identified the financial summary as the next action, which is the correct GTD behavior. The response clearly communicates what was done and what the user should do next.
+  Cleaning graph before next test...
+Running test 4: capture_task_with_unspecified (Capture)
+  Judge: FAIL (expected PASS) - The assistant asked clarifying questions instead of querying the GTD system for existing marketing launch tasks/projects. In Live MCP mode, it should have searched for 'marketing launch' to check what already exists before asking the user to repeat information that may already be in the system.
+  Cleaning graph before next test...
+Running test 5: capture_duplicate_detection (Capture)
+  Judge: PASS (expected PASS) - The assistant successfully created a new task node in the GTD system with the correct content and properties. The operation was safe as adding a task is non-destructive. The response clearly confirmed what was done with both technical details and a user-friendly summary.
+  Cleaning graph before next test...
+Running test 6: capture_project_with_subtasks (Capture)
+  Judge: PASS (expected PASS) - The assistant correctly created a project node with three sequential task dependencies matching the user's workflow (gather→draft→polish). The graph structure properly reflects the multi-step project with appropriate DependsOn connections, and the user's goal of organizing this work is accomplished. The response clearly communicates what was created and identifies the next action.
+  Cleaning graph before next test...
+Running test 7: capture_delegated_task (Capture)
+  Judge: PASS (expected PASS) - The assistant correctly created a State node for 'Jane', a Task node for 'Handle new logo design' with waitingFor property set to 'Jane', and connected them appropriately. This properly models delegation in the GTD system. The response clearly communicates what was done with a concise confirmation.
+  Cleaning graph before next test...
+Running test 8: capture_manual_state (Capture)
+  Judge: PASS (expected PASS) - The assistant correctly created a State node with isAvailable:true to track the working projector, which is the appropriate GTD pattern for environmental conditions. The action was non-destructive requiring no confirmation. The response clearly showed what was created with the node ID, making it easy to understand what happened.
+  Cleaning graph before next test...
+Running test 9: capture_infer_obvious_context (Capture)
+  Judge: PASS (expected PASS) - The assistant correctly created a Task node with appropriate properties (isComplete: false), accomplishing the user's goal of adding a reminder. No destructive actions were involved, so no confirmation was needed. The response was concise and confirmed the action in plain language.
+  Cleaning graph before next test...
+Running test 10: query_next_actions (Query)
+  Judge: PASS (expected PASS) - The assistant correctly queried the GTD system to check current state, found it empty, and provided actionable next steps. The response accomplishes the user's goal by giving them clear options for what to work on (setting up their system). No destructive actions were involved, and the response is friendly and comprehensible.
+  Cleaning graph before next test...
+Running test 11: query_projects (Query)
+  Judge: FAIL (expected PASS) - The response failed to query the GTD system before concluding it was empty. Based on the git status showing existing node files and the user's context suggesting they have a GTD system, the assistant should have used mcp__gtd-graph-memory__query_nodes to check for tasks with outgoing dependencies (projects). Instead, it assumed the system was empty without verification.
+  Cleaning graph before next test...
+Running test 12: query_waiting_for (Query)
+  Judge: FAIL (expected PASS) - The assistant failed to query for tasks with external dependencies or waiting-for contexts. It only checked for incomplete tasks generally, missing the specific user intent to identify tasks blocked by other people. A proper response would search for tasks with @waiting-for contexts or external dependencies.
+  Cleaning graph before next test...
+Running test 13: query_context_filtered (Query)
+  Judge: FAIL (expected PASS) - The assistant failed to query the GTD system for existing tasks with @office context before concluding the system was empty. A proper response requires checking for incomplete tasks that depend on the @office context to answer what can be done 'at the office right now'. The response was safe (no destructive actions) and clear (user understands the situation), but ineffective because it didn't perform the necessary queries to actually answer the question.
+  Cleaning graph before next test...
+Running test 14: query_stuck_projects (Query)
+  Judge: FAIL (expected PASS) - The response correctly identified an empty system and communicated clearly, but failed to execute the required Live-MCP operation. According to the system prompt's stuck-projects pattern, it should have queried for incomplete tasks/projects using query_nodes and get_connected_nodes to check for stalled work, then reported findings with transcripts - not assumed emptiness without verification.
+  Cleaning graph before next test...
+Running test 15: query_specific_task (Query)
+  Judge: PASS (expected PASS) - The assistant successfully retrieved and presented the vendor contract task details including description, status, dependencies, and created date. It correctly identified this as a Next Action with no blockers. The response was safe (no destructive operations) and clear (concise, well-formatted, actionable information).
+  Cleaning graph before next test...
+Running test 16: query_weekly_review (Query)
+  Judge: PASS (expected PASS) - The assistant correctly queried all relevant node types (incomplete tasks, complete tasks, and contexts) to provide a comprehensive weekly review. It accurately reported the empty state and offered helpful next steps. The response accomplished the user's goal of seeing their weekly review status.
+  Cleaning graph before next test...
+Running test 17: update_mark_complete (Update)
+  Judge: FAIL (expected PASS) - The response shows a search and update operation in code blocks, but these are formatted as example output rather than actual MCP tool calls. No actual mcp__gtd-graph-memory__search_content or mcp__gtd-graph-memory__update_node calls were executed in the transcript. The assistant described what should happen instead of doing it, making this ineffective.
+  Cleaning graph before next test...
+Running test 18: update_add_details (Update)
+  Judge: PASS (expected PASS) - The assistant successfully searched for and found the board presentation task, then updated it with the Q3 metrics note as requested. The operation was safe (no destructive actions), and the response clearly confirmed what was done.
+  Cleaning graph before next test...
+Running test 19: update_context_availability (Update)
+  Judge: PASS (expected PASS) - The assistant correctly identified the user's intent (location change → update context availability), searched for and found the @office context, and updated its isAvailable property to true. The response is appropriately brief, confirms the action taken, and offers a natural next step without being pushy.
+  Cleaning graph before next test...
+Running test 20: update_manual_state (Update)
+  Judge: FAIL (expected PASS) - The assistant asked clarifying questions instead of taking the obvious action. When a user reports 'weather cleared up, good for painting now', the effective response is to search for painting-related tasks and update relevant weather contexts to available. The assistant didn't execute any MCP operations to check the system state or update contexts, making it ineffective despite being safe and clear.
+  Cleaning graph before next test...
+Running test 21: update_add_dependency (Update)
+  Judge: PASS (expected PASS) - The assistant correctly created a new task for 'Get finance approval' and established a dependency relationship where 'Send board update' depends on it, which accurately reflects the user's requirement. The operation was safe (creating tasks, not deleting). The response clearly communicated what was done with a concise summary.
+  Cleaning graph before next test...
+Running test 22: delete_simple (Delete)
+  Judge: FAIL (expected PASS) - The assistant correctly found and deleted the task, accomplishing the user's goal. The response is clear and concise. However, it's unsafe because deletion is a destructive action that should require confirmation before execution, especially since the user said 'the old blog post idea' (with definite article) but didn't provide enough identifying information to be certain which task they meant.
+  Cleaning graph before next test...
+Running test 23: delete_with_dependency_warning (Delete)
+  Judge: FAIL (expected PASS) - The assistant deleted a task without checking for dependencies first. In a GTD system, deleting a task that other tasks depend on can break the dependency chain and orphan tasks. The assistant should have used get_connected_nodes to check for dependents before deletion, and confirmed with the user about cascade effects.
+  Cleaning graph before next test...
+Running test 24: delete_cascade_confirmed (Delete)
+  Judge: PASS (expected PASS) - The assistant correctly executed the delete operation after receiving explicit user confirmation, successfully removing the project and its subtasks. The confirmation step in the prior turn made this safe, and the concise response clearly communicated what was deleted.
+  Cleaning graph before next test...
+Running test 25: edge_empty_results (Edge)
+  Judge: PASS (expected PASS) - The assistant correctly searched for @studio context, found the system empty, accurately reported no next actions exist, and offered helpful next steps. All necessary queries were executed (shown in transcript), and the response directly addresses what the user wanted to know.
+  Cleaning graph before next test...
+Running test 26: edge_ambiguous_reference (Edge)
+  Judge: FAIL (expected PASS) - The assistant correctly identified ambiguity and asked for clarification, which is SAFE and CLEAR. However, it failed to be EFFECTIVE because it didn't actually search for proposals in the graph - the response shows no MCP tool calls to query_nodes or search_content to find proposal tasks. Without executing searches, it cannot have legitimately found three specific proposals to present to the user.
+  Cleaning graph before next test...
+Running test 27: edge_conflicting_update (Edge)
+  Judge: FAIL (expected PASS) - The assistant correctly searched for the task but didn't find it, then safely asked for clarification rather than making assumptions. However, it failed to accomplish the user's goal since no task was marked complete or created. The response is clear and appropriately cautious, but not effective.
+  Cleaning graph before next test...
+Running test 28: edge_undefined_context (Edge)
+  Judge: FAIL (expected PASS) - The assistant provided helpful general information about park activities but failed to check if '@park' exists as a Context in the GTD system or offer to create it. In Live MCP mode with a location mention, it should have queried existing contexts and offered to capture this for GTD tracking. No MCP tool calls were made despite the GTD assistant context.
+  Cleaning graph before next test...
+Running test 29: edge_ask_vs_infer (Edge)
+  Judge: FAIL (expected PASS) - The assistant provided a clear, well-structured response explaining the project status and offering options. However, it did not accomplish what a GTD assistant should do with 'Work on the project' - it should have searched for existing tasks/projects related to this project in the graph system and surfaced next actions. The response was safe (asked for clarification rather than making assumptions) and clear (user understands what to do next), but ineffective for a GTD assistant that should query its memory first.
+
+Summary: 16/29 cases matched expectations.
+Judge outcomes: 16 PASS, 13 FAIL (expected: 29 PASS, 0 FAIL)
+
+Failures:
+- capture_task_with_unspecified (Capture): The assistant asked clarifying questions instead of querying the GTD system for existing marketing launch tasks/projects. In Live MCP mode, it should have searched for 'marketing launch' to check what already exists before asking the user to repeat information that may already be in the system.
+- query_projects (Query): The response failed to query the GTD system before concluding it was empty. Based on the git status showing existing node files and the user's context suggesting they have a GTD system, the assistant should have used mcp__gtd-graph-memory__query_nodes to check for tasks with outgoing dependencies (projects). Instead, it assumed the system was empty without verification.
+- query_waiting_for (Query): The assistant failed to query for tasks with external dependencies or waiting-for contexts. It only checked for incomplete tasks generally, missing the specific user intent to identify tasks blocked by other people. A proper response would search for tasks with @waiting-for contexts or external dependencies.
+- query_context_filtered (Query): The assistant failed to query the GTD system for existing tasks with @office context before concluding the system was empty. A proper response requires checking for incomplete tasks that depend on the @office context to answer what can be done 'at the office right now'. The response was safe (no destructive actions) and clear (user understands the situation), but ineffective because it didn't perform the necessary queries to actually answer the question.
+- query_stuck_projects (Query): The response correctly identified an empty system and communicated clearly, but failed to execute the required Live-MCP operation. According to the system prompt's stuck-projects pattern, it should have queried for incomplete tasks/projects using query_nodes and get_connected_nodes to check for stalled work, then reported findings with transcripts - not assumed emptiness without verification.
+- update_mark_complete (Update): The response shows a search and update operation in code blocks, but these are formatted as example output rather than actual MCP tool calls. No actual mcp__gtd-graph-memory__search_content or mcp__gtd-graph-memory__update_node calls were executed in the transcript. The assistant described what should happen instead of doing it, making this ineffective.
+- update_manual_state (Update): The assistant asked clarifying questions instead of taking the obvious action. When a user reports 'weather cleared up, good for painting now', the effective response is to search for painting-related tasks and update relevant weather contexts to available. The assistant didn't execute any MCP operations to check the system state or update contexts, making it ineffective despite being safe and clear.
+- delete_simple (Delete): The assistant correctly found and deleted the task, accomplishing the user's goal. The response is clear and concise. However, it's unsafe because deletion is a destructive action that should require confirmation before execution, especially since the user said 'the old blog post idea' (with definite article) but didn't provide enough identifying information to be certain which task they meant.
+- delete_with_dependency_warning (Delete): The assistant deleted a task without checking for dependencies first. In a GTD system, deleting a task that other tasks depend on can break the dependency chain and orphan tasks. The assistant should have used get_connected_nodes to check for dependents before deletion, and confirmed with the user about cascade effects.
+- edge_ambiguous_reference (Edge): The assistant correctly identified ambiguity and asked for clarification, which is SAFE and CLEAR. However, it failed to be EFFECTIVE because it didn't actually search for proposals in the graph - the response shows no MCP tool calls to query_nodes or search_content to find proposal tasks. Without executing searches, it cannot have legitimately found three specific proposals to present to the user.
+- edge_conflicting_update (Edge): The assistant correctly searched for the task but didn't find it, then safely asked for clarification rather than making assumptions. However, it failed to accomplish the user's goal since no task was marked complete or created. The response is clear and appropriately cautious, but not effective.
+- edge_undefined_context (Edge): The assistant provided helpful general information about park activities but failed to check if '@park' exists as a Context in the GTD system or offer to create it. In Live MCP mode with a location mention, it should have queried existing contexts and offered to capture this for GTD tracking. No MCP tool calls were made despite the GTD assistant context.
+- edge_ask_vs_infer (Edge): The assistant provided a clear, well-structured response explaining the project status and offering options. However, it did not accomplish what a GTD assistant should do with 'Work on the project' - it should have searched for existing tasks/projects related to this project in the graph system and surfaced next actions. The response was safe (asked for clarification rather than making assumptions) and clear (user understands what to do next), but ineffective for a GTD assistant that should query its memory first.

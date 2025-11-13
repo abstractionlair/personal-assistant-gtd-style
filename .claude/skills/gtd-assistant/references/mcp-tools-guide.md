@@ -35,7 +35,7 @@ Create a new node in the graph.
     logic?: "MANUAL",        // Only MANUAL in Phase 1
 
     // For Context:
-    isAvailable?: boolean    // Required
+    isTrue?: boolean    // Required
   }
 }
 ```
@@ -46,7 +46,7 @@ Create a new node in the graph.
 ```
 
 **Usage notes:**
-- Always provide explicit `isComplete`, `isTrue`, or `isAvailable` defaults
+- Always provide explicit `isComplete`, `isTrue`, or `isTrue` defaults
 - `content` is stored separately from properties
 - Use markdown format for rich text descriptions
 - Property values must be string, number, or boolean (no nested objects)
@@ -557,10 +557,10 @@ get_connected_nodes({
 // 1. Ensure context exists
 create_node({
   "type": "Context",
-  "content": "@office",
+  "content": "atOffice",
   "encoding": "utf-8",
   "format": "markdown",
-  "properties": { "isAvailable": true }
+  "properties": { "isTrue": true }
 })
 // Returns: { "node_id": "mem_ctx_001" }
 
@@ -656,7 +656,7 @@ for (const taskId of taskIds) {
         // Blocked
       }
     } else if (depNode.type === "Context") {
-      if (!depNode.properties.isAvailable) {
+      if (!depNode.properties.isTrue) {
         // Blocked
       }
     } else if (depNode.type === "UNSPECIFIED") {

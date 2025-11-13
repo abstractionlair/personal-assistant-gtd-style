@@ -240,7 +240,7 @@ python tests/test_conversational_layer_new.py \
 
 **Example test categories**:
 - `capture_simple_task`: Basic task capture
-- `capture_task_with_context`: Task requiring @office context
+- `capture_task_with_context`: Task requiring atOffice context
 - `query_next_actions`: What should I work on?
 - `update_mark_complete`: Mark task as done
 - `delete_with_dependency_warning`: Warn before cascade delete
@@ -499,8 +499,8 @@ Test cases can include a `graph_setup` field with three optional arrays:
     ],
     "contexts": [
       {
-        "content": "@office",
-        "isAvailable": false
+        "content": "atOffice",
+        "isTrue": false
       }
     ],
     "states": [
@@ -518,7 +518,7 @@ Test cases can include a `graph_setup` field with three optional arrays:
 | Array | Purpose | Fields |
 |-------|---------|--------|
 | `tasks` | Pre-create tasks | `content` (string), `isComplete` (bool), `id` (optional ref), `depends_on` (string[]) |
-| `contexts` | Pre-create contexts | `content` (string), `isAvailable` (bool) |
+| `contexts` | Pre-create contexts | `content` (string), `isTrue` (bool) |
 | `states` | Pre-create states | `content` (string), `isTrue` (bool) |
 
 #### Fixture Setup Process
@@ -529,7 +529,7 @@ Test cases can include a `graph_setup` field with three optional arrays:
 
    Create an incomplete task: 'File quarterly taxes'
      (Store this task ID as 'tax_task' for later reference)
-   Create context @office (currently unavailable)
+   Create context atOffice (currently unavailable)
    ```
 
 2. **Use specialized setup system prompt**:

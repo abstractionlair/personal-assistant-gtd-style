@@ -38,6 +38,8 @@ class Config:
         interrogate_failures: Whether to interrogate failed tests
         interrogate_passes: Whether to interrogate passed tests
         use_refactored_cases: Whether to use refactored test cases
+        use_isolated_env: Use isolated test installation directory
+        keep_test_install: Keep test installation after completion
 
         # Output
         log_file: Path to log file
@@ -79,6 +81,8 @@ class Config:
     interrogate_failures: bool = True  # Default: interrogate failures
     interrogate_passes: bool = True  # Default: interrogate passes (--interrogate-all)
     use_refactored_cases: bool = True
+    use_isolated_env: bool = False  # Use isolated test installation
+    keep_test_install: bool = False  # Keep test installation after completion
 
     # Output
     log_file: Path = Path("test_run.log")
@@ -208,6 +212,8 @@ class Config:
             "interrogate_failures": self.interrogate_failures,
             "interrogate_passes": self.interrogate_passes,
             "use_refactored_cases": self.use_refactored_cases,
+            "use_isolated_env": self.use_isolated_env,
+            "keep_test_install": self.keep_test_install,
             "log_file": str(self.log_file),
             "log_level": self.log_level,
             "results_db": str(self.results_db),
