@@ -58,7 +58,7 @@ cat /var/folders/.../mcp-test-logs/mcp-log-*.jsonl
 - [plans/api-harness-multi-provider.md](plans/api-harness-multi-provider.md) — API-driven, multi-provider test harness
 - [plans/mcp-tool-gateway.md](plans/mcp-tool-gateway.md) — Generic MCP bridge + clients repo plan
 - [plans/provider-fast-paths-todo.md](plans/provider-fast-paths-todo.md) — Provider fast paths (OpenAI Agents, xAI remote MCP) TODOs
-- [plans/mcp-tool-gateway.md](plans/mcp-tool-gateway.md) — Generic MCP bridge + clients repo plan
+- [plans/multi-agent-harness-extraction.md](plans/multi-agent-harness-extraction.md) — Plan to extract reusable multi-agent harness library
 
 ### 📘 [infrastructure.md](infrastructure.md)
 **Current implementation details** (1,653 lines)
